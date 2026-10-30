@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Шың · магистратураға дайындық</title>
+  <meta name="description" content="Магистратураға кешенді тестілеуге дайындық: алгоритмдер, деректер қоры, ағылшын тілі. Түсіндірмелі нұсқалар, қателермен жұмыс, аралықпен қайталау.">
+  <meta name="theme-color" content="#15233F">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="is-loading">
+  <a class="skip" href="#view">Мазмұнға өту</a>
+
+  <aside class="rail" aria-label="Негізгі мәзір">
+    <a class="brand" href="#/"><span class="brand__mark" aria-hidden="true"></span><span class="brand__t">Шың<small>магистратураға дайындық</small></span></a>
+    <nav class="rail__nav">
+      <a class="navlink" data-r="home" href="#/">Басты бет</a>
+      <a class="navlink" data-r="variants" href="#/variants">Нұсқалар</a>
+      <a class="navlink" data-r="bank" href="#/bank">Сұрақтар қоры</a>
+      <span class="rail__sep">Есте сақтау</span>
+      <a class="navlink" data-r="cards" href="#/cards">Карточкалар</a>
+      <a class="navlink" data-r="sorting" href="#/sorting">Сұрыптау күрделілігі</a>
+      <a class="navlink" data-r="synonyms" href="#/synonyms">Ағылшын синонимдері</a>
+      <span class="rail__sep">Мен</span>
+      <a class="navlink" data-r="stats" href="#/stats">Статистика</a>
+      <a class="navlink" data-r="settings" href="#/settings">Баптаулар</a>
+    </nav>
+    <button class="themebtn" id="themeBtn" aria-label="Тақырыпты ауыстыру"><span aria-hidden="true"></span>Тақырып</button>
+  </aside>
+
+  <main id="view" class="view" tabindex="-1">
+    <div class="loader" role="status"><span class="brand__mark" aria-hidden="true"></span>Сұрақтар жүктелуде…</div>
+  </main>
+
+  <nav class="tabbar" aria-label="Мобильді мәзір">
+    <a class="navlink" data-r="home" href="#/">Басты</a>
+    <a class="navlink" data-r="variants" href="#/variants">Нұсқалар</a>
+    <a class="navlink" data-r="cards" href="#/cards">Карточка</a>
+    <a class="navlink" data-r="stats" href="#/stats">Статистика</a>
+    <a class="navlink" data-r="more" href="#/more">Тағы</a>
+  </nav>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal__scrim"></div>
+    <div class="modal__box" role="dialog" aria-modal="true">
+      <button class="modal__x" data-close aria-label="Жабу">×</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/core.js"></script>
+  <script src="data/flashcards.js"></script>
+  <script src="data/sorting.js"></script>
+  <script src="data/synonyms.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/extras.js"></script>
+  <script>
+    /* Мобильді «Тағы» беті — бүйірлік мәзірдің толық тізімі */
+    Shyn.route("more", function () {
+      var links = Array.prototype.slice.call(document.querySelectorAll(".rail__nav a"));
+      document.getElementById("view").innerHTML = '<header class="page-head"><h1>Тағы</h1></header><nav class="morelist">' +
+        links.map(function (a) { return '<a href="' + a.getAttribute("href") + '">' + a.textContent + '</a>'; }).join("") +
+        '<button id="moreTheme">Тақырыпты ауыстыру</button></nav>';
+      document.getElementById("moreTheme").onclick = function () { document.getElementById("themeBtn").click(); };
+    });
+  </script>
+  <script src="data/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# v24-algo,v24-db,v24-english
+@@s04922
+Сұхбаттың басында үміткер былай дейді: «I grew up in Almaty and studied accounting» — ол бухгалтерлік есепті оқыған. Дұрыс жауап — B.
+@@s04923
+Үміткер: «I enjoy cycling and reading» — оның әуестері велоспорт (cycling/bicycling) және кітап оқу. Дұрыс жауап — D.
+@@s04924
+Үміткер бухгалтерлік есепті оқыған («studied accounting») және бухгалтерлік фирмада жұмыс істеген («worked at an accounting firm») — оның мамандығы accounting. Дұрыс жауап — C.
+@@s04925
+Күшті жақтары туралы сұраққа үміткер былай жауап береді: «I've always been a great team player». Дұрыс жауап — C.
+@@s04926
+Мәтінде тікелей айтылған: «I worked at an accounting firm for two years». Дұрыс жауап — B.
