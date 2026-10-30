@@ -30,7 +30,7 @@
     if (name === "quiz" && !S.test) name = "home";
     if (name === "result" && !S.lastResult) name = "home";
     var fn = routes[name] || routes.home;
-    U.$$(".navlink").forEach(function (a) { a.classList.toggle("is-active", a.getAttribute("data-r") === name); });
+    U.$$(".navlink").forEach(function (a) { a.classList.toggle("is-active", a.getAttribute("data-r") === (name === "lesson" ? "eng" : name)); });
     document.body.setAttribute("data-route", name);
     fn(h.slice(1));
     if (!Shyn._keepScroll) global.scrollTo(0, 0);
@@ -223,6 +223,7 @@
         action("mistakes", "Қателермен жұмыс", wrong ? wrong + " сұрақта қателескенсіз — соларды қайта шығарыңыз" : "Қате жіберген сұрақтарыңыз осында жиналады", wrong, wrong ? "Бастау" : null) +
         action("due", "Аралықпен қайталау", due ? due + " сұрақты қайталау уақыты келді" : "Дұрыс жауаптар 3, 7, 21 күннен кейін қайта шығады", due, due ? "Қайталау" : null) +
         action("weak", "Әлсіз тақырыптар", "Ең нашар тақырыптардан және қайталауға келген сұрақтардан 20 сұрақ", 0, "Жинау") +
+        (Shyn.engSummary ? action("eng", "Ағылшын грамматикасы", "Бүгін " + Shyn.engSummary().xp + " / " + Shyn.engSummary().goal + " XP. Келесі сабақ: " + Shyn.engSummary().next, Shyn.engSummary().due, "Сабаққа өту") : "") +
         action("cards", "Есте сақтау карточкалары", Shyn.cards.length + " қысқа факт: анықтамалар, күрделілік, қасиеттер", 0, "Ашу") +
       '</div></section>' +
       '<section class="block block--split"><div><h2>Әлсіз тақырыптар</h2><div class="weaks">' + weakHTML + '</div>' +
@@ -238,7 +239,7 @@
     U.on("[data-act]", "click", function (e, el) {
       var a = el.getAttribute("data-act");
       if (a === "mistakes") Shyn.launchMistakes(); else if (a === "due") Shyn.launchAdaptive("due");
-      else if (a === "weak") Shyn.launchAdaptive("weak"); else if (a === "cards") Shyn.go("#/cards");
+      else if (a === "weak") Shyn.launchAdaptive("weak"); else if (a === "cards") Shyn.go("#/cards"); else if (a === "eng") Shyn.go("#/eng");
     }, view);
     U.$("#topicGo").addEventListener("click", function () { var t = U.$("#topicSel").value; if (t) Shyn.launchTopic(t); else U.toast("Алдымен тақырыпты таңдаңыз"); });
   });

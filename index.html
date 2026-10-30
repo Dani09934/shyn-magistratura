@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=2">
+  <link rel="stylesheet" href="css/app.css?v=3">
 </head>
 <body class="is-loading">
   <a class="skip" href="#view">Мазмұнға өту</a>
@@ -21,6 +21,8 @@
       <a class="navlink" data-r="home" href="#/">Басты бет</a>
       <a class="navlink" data-r="variants" href="#/variants">Нұсқалар</a>
       <a class="navlink" data-r="bank" href="#/bank">Сұрақтар қоры</a>
+      <span class="rail__sep">Ағылшын тілі</span>
+      <a class="navlink" data-r="eng" href="#/eng">Грамматика курсы</a>
       <span class="rail__sep">Есте сақтау</span>
       <a class="navlink" data-r="cards" href="#/cards">Карточкалар</a>
       <a class="navlink" data-r="sorting" href="#/sorting">Сұрыптау күрделілігі</a>
@@ -39,7 +41,7 @@
   <nav class="tabbar" aria-label="Мобильді мәзір">
     <a class="navlink" data-r="home" href="#/">Басты</a>
     <a class="navlink" data-r="variants" href="#/variants">Нұсқалар</a>
-    <a class="navlink" data-r="cards" href="#/cards">Карточка</a>
+    <a class="navlink" data-r="eng" href="#/eng">Курс</a>
     <a class="navlink" data-r="stats" href="#/stats">Статистика</a>
     <a class="navlink" data-r="more" href="#/more">Тағы</a>
   </nav>
@@ -53,12 +55,14 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="js/core.js?v=2"></script>
+  <script src="js/core.js?v=3"></script>
   <script src="data/flashcards.js"></script>
   <script src="data/sorting.js"></script>
   <script src="data/synonyms.js"></script>
-  <script src="js/app.js?v=2"></script>
-  <script src="js/extras.js?v=2"></script>
+  <script src="js/app.js?v=3"></script>
+  <script src="js/extras.js?v=3"></script>
+  <script src="data/grammar.js?v=3"></script>
+  <script src="js/english.js?v=3"></script>
   <script>
     /* Мобильді «Тағы» беті — бүйірлік мәзірдің толық тізімі */
     Shyn.route("more", function () {
