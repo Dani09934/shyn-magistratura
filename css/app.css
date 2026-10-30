@@ -434,3 +434,33 @@ tbody tr:last-child > * { border-bottom: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
+
+/* ===== Мобильді масштаб: беттің ені экраннан аспауы керек ===== */
+html, body { max-width: 100%; overflow-x: clip; }
+.view, .quiz__main, .quiz__body > *, .hero > *, .block > * { min-width: 0; }
+pre, code, .code { max-width: 100%; }
+pre { overflow-x: auto; white-space: pre; }
+img, svg, audio, video, canvas, iframe { max-width: 100%; }
+audio { width: 100%; }
+.q, .q__text, .opt__t, .passage, .explain, .bq__q, .flash__face { overflow-wrap: anywhere; word-break: normal; }
+.tablewrap, .sortwrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 1060px) {
+  .quiz__body { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  body { grid-template-columns: minmax(0, 1fr); }
+  .view { padding: 20px 16px 88px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .variant__subj { grid-template-columns: minmax(0, 1fr); }
+  .resume { min-width: 0; }
+  .subjres__r { grid-template-columns: 96px minmax(0, 1fr) 56px; }
+  .result { padding: 22px 16px; }
+  input, select, textarea, .field { font-size: 16px; }
+}
+@media (max-width: 480px) {
+  html { font-size: calc(15px * var(--fs, 1)); }
+  input, select, textarea, .field { font-size: 16px; }
+  .actions { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .deckbar { grid-template-columns: minmax(0, 1fr) auto; }
+}
