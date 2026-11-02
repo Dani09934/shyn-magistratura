@@ -3,7 +3,7 @@
 import hashlib, os, json
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 files = ['./', 'index.html', 'manifest.webmanifest', 'favicon.svg']
-for d in ['css', 'js', 'data', 'icons']:
+for d in ['css', 'js', 'data', 'icons', 'vendor']:
     for dp, _, fs in os.walk(os.path.join(ROOT, d)):
         for f in sorted(fs):
             files.append(os.path.relpath(os.path.join(dp, f), ROOT).replace(os.sep, '/'))
