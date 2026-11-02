@@ -244,11 +244,45 @@
         return '<button class="weak" data-topic="' + esc(t.topic) + '"><span class="weak__name">' + esc(t.topic) + (t.confWrong ? ' <span class="muted">· сенімді қате: ' + t.confWrong + '</span>' : "") + '</span>' + Shyn.bar(t.pct, Shyn.tone(t.pct)) + '<span class="weak__pct">' + t.correct + "/" + t.attempts + '</span></button>'; }).join("") + '</div>' : '<p class="muted">Әзірге дерек жоқ.</p>') + '</div>' +
       '<div><h2>Қателердің себептері</h2>' + (reasons ? '<div class="weaks">' + reasons.map(function (r) {
         return '<div class="weak"><span class="weak__name">' + RN[r.reason] + '</span>' + Shyn.bar(r.pct, r.reason === "unknown" ? "low" : r.reason === "confused" ? "mid" : "good") + '<span class="weak__pct">' + r.count + '</span></div>'; }).join("") + '</div><p class="muted">Себепті түсіндірме астындағы батырмалармен белгілеңіз — қайталау аралығы соған қарай таңдалады.</p>' : '<p class="muted">Қате жоқ немесе әлі тест тапсырылмаған.</p>') + '</div></section>' +
-      '<section class="block"><h2>Тесттер тарихы</h2>' + (H.length ? '<div class="tablewrap"><table class="hist"><thead><tr><th>Күні</th><th>Тест</th><th>Режим</th><th>Балл</th><th>Уақыт</th></tr></thead><tbody>' +
-        H.slice().reverse().slice(0, 40).map(function (r) { var p = r.max ? Math.round(r.got / r.max * 100) : 0;
-          return '<tr><td>' + U.fmtDate(r.at) + '</td><td>' + esc(r.title) + '</td><td>' + (r.mode === "exam" ? "емтихан" : "жаттығу") + '</td><td><b class="tone-' + Shyn.tone(p) + '">' + r.got + " / " + r.max + '</b> (' + p + '%)</td><td>' + U.fmtTime(r.dur || 0) + '</td></tr>'; }).join("") +
-        '</tbody></table></div>' : '<p class="muted">Тарих бос.</p>') + '</section>';
+      '<section class="block"><h2>Тесттер тарихы</h2>' + (H.length ? '<div class="tablewrap"><table class="hist"><thead><tr><th>Күні</th><th>Тест</th><th>Режим</th><th>Балл</th><th>Уақыт</th><th></th></tr></thead><tbody>' +
+        H.slice().reverse().slice(0, 10).map(function (r) { var p = r.max ? Math.round(r.got / r.max * 100) : 0;
+          return '<tr><td>' + U.fmtDate(r.at) + '</td><td>' + esc(r.title) + '</td><td>' + (r.mode === "exam" ? "емтихан" : "жаттығу") + '</td><td><b class="tone-' + Shyn.tone(p) + '">' + r.got + " / " + r.max + '</b> (' + p + '%)</td><td>' + U.fmtTime(r.dur || 0) + '</td><td>' + (r.qs ? '<button class="link" data-hist="' + r.at + '">Жауаптар</button>' : "") + '</td></tr>'; }).join("") +
+        '</tbody></table></div><a class="link" href="#/history">Барлық тарих және жауаптарды қарау</a>' : '<p class="muted">Тарих бос.</p>') + '</section>';
     U.on("[data-topic]", "click", function (e, el) { Shyn.launchTopic(el.getAttribute("data-topic")); }, view);
+    U.on("[data-hist]", "click", function (e, el) { Shyn.openHistory(el.getAttribute("data-hist")); }, view);
+  });
+
+  /* ================= Тесттер тарихы ================= */
+  var HF = { mode: "", q: "" };
+  Shyn.route("history", function () {
+    var H = Store.history().slice().reverse();
+    var list = H.filter(function (r) {
+      return (!HF.mode || r.mode === HF.mode) && (!HF.q || r.title.toLowerCase().indexOf(HF.q.toLowerCase()) >= 0);
+    });
+    var groups = {}, order = [];
+    list.forEach(function (r) { var d = U.dayKey(new Date(r.at)); if (!groups[d]) { groups[d] = []; order.push(d); } groups[d].push(r); });
+    function row(r) {
+      var p = r.max ? Math.round(r.got / r.max * 100) : 0, s = r.sum;
+      var tm = new Date(r.at), hhmm = ("0" + tm.getHours()).slice(-2) + ":" + ("0" + tm.getMinutes()).slice(-2);
+      return '<article class="hrow">' +
+        '<div class="hrow__score tone-' + Shyn.tone(p) + '"><b>' + p + '%</b><span>' + r.got + " / " + r.max + '</span></div>' +
+        '<div class="hrow__main"><h3>' + esc(r.title) + '</h3><p class="muted">' + hhmm + ' · ' + (r.mode === "exam" ? "емтихан" : "жаттығу") + ' · ' + U.fmtTime(r.dur || 0) + '</p>' +
+          (s ? '<ul class="hrow__tally"><li class="t-ok">' + s.ok + ' дұрыс</li>' + (s.part ? '<li class="t-part">' + s.part + ' ішінара</li>' : "") + '<li class="t-no">' + s.no + ' қате</li>' + (s.empty ? '<li>' + s.empty + ' жауапсыз</li>' : "") + '</ul>' : "") + '</div>' +
+        (r.qs ? '<button class="btn btn--line" data-hist="' + r.at + '">Жауаптарды қарау</button>' : '<span class="muted hrow__old">жауаптар сақталмаған</span>') +
+      '</article>';
+    }
+    view.innerHTML =
+      '<header class="page-head"><h1>Тесттер тарихы</h1><p class="muted">Әр тесттің жауаптарын ашып, қай сұрақта дұрыс, қайсысында қате жауап бергеніңізді түсіндірмесімен қараңыз. Жауаптар соңғы 80 тест үшін сақталады.</p></header>' +
+      '<div class="toolbar"><div class="seg" role="group">' + [["", "Барлығы"], ["practice", "Жаттығу"], ["exam", "Емтихан"]].map(function (m) {
+        return '<button data-hm="' + m[0] + '" class="' + (HF.mode === m[0] ? "is-on" : "") + '">' + m[1] + '</button>'; }).join("") + '</div>' +
+        '<input class="field toolbar__search" id="hq" type="search" placeholder="Тест атауы бойынша іздеу" value="' + esc(HF.q) + '"></div>' +
+      (list.length ? order.map(function (d) {
+        var dt = new Date(groups[d][0].at);
+        return '<section class="hday"><h2>' + dt.getDate() + " " + U.MONTHS[dt.getMonth()] + " " + dt.getFullYear() + '</h2>' + groups[d].map(row).join("") + '</section>';
+      }).join("") : '<p class="muted">' + (H.length ? "Сүзгі бойынша ештеңе табылмады." : "Әзірге тест тапсырылмаған. Нұсқалар бөлімінен кез келген тестті бастаңыз — нәтижесі осында сақталады.") + '</p>');
+    U.on("[data-hm]", "click", function (e, el) { HF.mode = el.getAttribute("data-hm"); Shyn.render(); }, view);
+    U.$("#hq").addEventListener("change", function () { HF.q = this.value.trim(); Shyn.render(); });
+    U.on("[data-hist]", "click", function (e, el) { Shyn.openHistory(el.getAttribute("data-hist")); }, view);
   });
 
   /* ================= Баптаулар ================= */

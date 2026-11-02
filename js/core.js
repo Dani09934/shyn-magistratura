@@ -131,6 +131,8 @@
       var b = st.best[r.key];
       if (!b || r.got > b.got) st.best[r.key] = { got: r.got, max: r.max, at: Date.now() };
       st.history.push(r); if (st.history.length > 300) st.history.shift();
+      // Жауаптардың толық көшірмесін тек соңғы 80 тест үшін сақтаймыз (браузер жадын үнемдеу)
+      for (var i = 0; i < st.history.length - 80; i++) { delete st.history[i].qs; delete st.history[i].ans; delete st.history[i].fl; }
       save();
     },
     history: function () { return st.history.slice(); },

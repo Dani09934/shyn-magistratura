@@ -545,7 +545,10 @@
       var r = Score.question(q, S.answers[q.id]), x = subj[q._subject] || (subj[q._subject] = { got: 0, max: 0 });
       x.got += r.points; x.max += r.max;
     });
-    var rec = { key: t.scope, title: t.title, mode: t.mode, got: sc.got, max: sc.max, at: Date.now(), dur: dur, subj: subj };
+    var rec = { key: t.scope, title: t.title, mode: t.mode, got: sc.got, max: sc.max, at: Date.now(), dur: dur, subj: subj,
+      qs: t.questions.map(function (q) { return q.id; }), ans: {}, fl: [],
+      sum: { ok: sc.correct, part: sc.partial, no: sc.wrong, empty: sc.empty } };
+    t.questions.forEach(function (q) { if (S.answers[q.id] && S.answers[q.id].length) rec.ans[q.id] = S.answers[q.id].slice(); if (S.flags[q.id]) rec.fl.push(q.id); });
     Store.recordResult(rec);
     Store.clearSession(t.scope + "|" + t.mode);
     S.lastResult = { test: t, answers: S.answers, flags: S.flags, auto: auto, rec: rec };
@@ -566,7 +569,7 @@
     view.innerHTML =
       '<section class="result">' +
         '<div class="result__score">' + ring(pct, 168, tone(pct)) + '<div class="result__pct"><b>' + pct + '%</b><span>' + sc.got + " / " + sc.max + ' балл</span></div></div>' +
-        '<div class="result__info">' + (R.auto ? '<p class="warn">Уақыт бітті — тест автоматты түрде аяқталды.</p>' : "") +
+        '<div class="result__info">' + (R.fromHistory ? '<p class="hist-note"><a class="link" href="#/history">← Тесттер тарихы</a> · ' + U.fmtDate(R.rec.at) + ' · ' + (R.rec.mode === "exam" ? "емтихан" : "жаттығу") + '</p>' : "") + (R.auto ? '<p class="warn">Уақыт бітті — тест автоматты түрде аяқталды.</p>' : "") +
           '<h1>' + esc(t.title) + '</h1><p>' + verdict + '</p>' +
           '<div class="split">' + segs + '</div>' +
           '<ul class="tally"><li><i class="lg lg--ok"></i>' + sc.correct + ' дұрыс</li><li><i class="lg lg--part"></i>' + sc.partial + ' ішінара</li><li><i class="lg lg--no"></i>' + sc.wrong + ' қате</li><li><i class="lg"></i>' + sc.empty + ' жауапсыз</li><li>Уақыт: ' + U.fmtTime(R.rec.dur) + '</li></ul>' +
@@ -590,6 +593,16 @@
     bindAI(view); applyReview();
   });
   function base(q) { return Object.getPrototypeOf(q); }
+  /* Тарихтағы тестті ашу: сол кездегі жауаптармен талдау беті */
+  Shyn.openHistory = function (at) {
+    var rec = Store.history().filter(function (r) { return String(r.at) === String(at); })[0];
+    if (!rec || !rec.qs) { U.toast("Бұл тесттің жауаптары сақталмаған (ескі жазба)"); return; }
+    var qs = rec.qs.map(function (id) { return Shyn.questionById(id); }).filter(Boolean).map(function (q) { var c = Object.create(q); c._opts = q.opts; return c; });
+    if (!qs.length) { U.toast("Бұл тесттің сұрақтары табылмады"); return; }
+    var fl = {}; (rec.fl || []).forEach(function (id) { fl[id] = true; });
+    S.lastResult = { test: { scope: rec.key, title: rec.title, mode: rec.mode, questions: qs }, answers: rec.ans || {}, flags: fl, auto: false, rec: rec, fromHistory: true };
+    S.review = "all"; Shyn.go("#/result");
+  };
   function applyReview() {
     var s = (U.$("#rsearch").value || "").toLowerCase();
     U.$$(".rv").forEach(function (el) {

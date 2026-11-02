@@ -58,7 +58,7 @@
     }).join("") + '</div>';
   }
   function engNav(active) {
-    var tabs = [["", "Оқу жолы"], ["review", "Қайталау"], ["table", "Шақтар кестесі"], ["game", "Ойын"]];
+    var tabs = [["", "Оқу жолы"], ["review", "Қайталау"], ["table", "12 шақ"], ["build", "Құрастырғыш"], ["pron", "Есімдіктер"], ["verbs", "Етістіктер"], ["game", "Ойын"]];
     return '<nav class="engnav" aria-label="Курс бөлімдері">' + tabs.map(function (t) {
       return '<a href="#/eng' + (t[0] ? "/" + t[0] : "") + '" class="' + (active === t[0] ? "is-on" : "") + '">' + t[1] + '</a>';
     }).join("") + '</nav>';
@@ -77,6 +77,9 @@
     if (sub === "review") return reviewPage();
     if (sub === "table") return tablePage();
     if (sub === "game") return gamePage();
+    if (sub === "build") return buildPage();
+    if (sub === "pron") return pronPage();
+    if (sub === "verbs") return verbsPage();
     pathPage();
   });
 
@@ -85,7 +88,7 @@
     var tx = todayXP(), g = goal(), st = streak();
     var mastered = ORDER.filter(function (id) { return tState(id).lvl >= 1; }).length;
     view.innerHTML =
-      '<header class="page-head"><h1>Ағылшын грамматикасы</h1><p class="muted">12 шақ және емтиханда жиі келетін құрылымдар. Әр сабақ — қысқа ереже және 8 жаттығу, 3–5 минут.</p></header>' +
+      '<header class="page-head"><h1>Ағылшын грамматикасы</h1><p class="muted">Негіздерден (есімдіктер, be, сұрақтар) бастап 12 шаққа және емтиханда жиі келетін құрылымдарға дейін. Әр сабақ — қысқа ереже және 8 жаттығу, 3–5 минут.</p></header>' +
       engNav("") +
       '<section class="engstat">' +
         '<div class="engstat__goal"><div class="ring-goal" style="--p:' + Math.min(100, Math.round(tx / g * 100)) + '"><span>' + tx + '<small>/ ' + g + ' XP</small></span></div>' +
@@ -403,6 +406,205 @@
     E.game.plays++; GM.newBest = GM.score > E.game.best; if (GM.newBest) E.game.best = GM.score;
     var xp = Math.min(30, Math.round(GM.score / 10)); if (xp) addXP(xp); else save();
     gamePage();
+  }
+
+  /* ================= Етістік түрлендіргіш (құрастырғыш үшін) ================= */
+  var IRR = {}; (G.irregular || []).forEach(function (r) { IRR[r[0]] = { v2: r[1].split(" / ")[0], v3: r[2].split(" / ")[0], kz: r[3] }; });
+  var REG = {}; (G.regular || []).forEach(function (r) { REG[r[0]] = r[1]; });
+  var DOUBLE = { stop: 1, plan: 1, run: 1, sit: 1, swim: 1, get: 1, put: 1, cut: 1, begin: 1, shop: 1, travel: 1, hit: 1, set: 1, let: 1, shut: 1, win: 1, forget: 1 };
+  var V = {
+    s3: function (v) { if (v === "have") return "has"; if (v === "be") return "is"; if (/(s|sh|ch|x|z|o)$/.test(v)) return v + "es"; if (/[^aeiou]y$/.test(v)) return v.slice(0, -1) + "ies"; return v + "s"; },
+    ing: function (v) { if (v === "be") return "being"; if (/ie$/.test(v)) return v.slice(0, -2) + "ying"; if (/[^aeiouy]e$/.test(v) && v !== "be") return v.slice(0, -1) + "ing"; if (DOUBLE[v]) return v + v.slice(-1) + "ing"; return v + "ing"; },
+    ed: function (v) { if (/e$/.test(v)) return v + "d"; if (/[^aeiou]y$/.test(v)) return v.slice(0, -1) + "ied"; if (DOUBLE[v]) return v + v.slice(-1) + "ed"; return v + "ed"; },
+    v2: function (v) { return IRR[v] ? IRR[v].v2 : V.ed(v); },
+    v3: function (v) { return IRR[v] ? IRR[v].v3 : V.ed(v); }
+  };
+  var SUBJ = [["I", "мен"], ["you", "сен / сіз"], ["he", "ол (ер)"], ["she", "ол (әйел)"], ["it", "ол (зат)"], ["we", "біз"], ["they", "олар"]];
+  var TENSES = [
+    ["ps", "Present Simple", "present-simple"], ["pc", "Present Continuous", "present-continuous"], ["pp", "Present Perfect", "present-perfect"], ["ppc", "Present Perfect Continuous", "present-perfect-continuous"],
+    ["pas", "Past Simple", "past-simple"], ["pac", "Past Continuous", "past-continuous"], ["pap", "Past Perfect", "past-perfect"], ["papc", "Past Perfect Continuous", "past-perfect-continuous"],
+    ["fs", "Future Simple", "future-simple"], ["fc", "Future Continuous", "future-continuous"], ["fp", "Future Perfect", "future-perfect"], ["fpc", "Future Perfect Continuous", "future-perfect-continuous"]
+  ];
+  function third(s) { return s === "he" || s === "she" || s === "it"; }
+  function beP(s) { return s === "I" ? "am" : third(s) ? "is" : "are"; }
+  function beW(s) { return s === "I" || third(s) ? "was" : "were"; }
+  function hv(s) { return third(s) ? "has" : "have"; }
+  function cap(x) { return x.charAt(0).toUpperCase() + x.slice(1); }
+  var NEG = { am: "am not", is: "isn't", are: "aren't", was: "wasn't", were: "weren't", have: "haven't", has: "hasn't", had: "hadn't", will: "won't", do: "don't", does: "doesn't", did: "didn't" };
+  /* Шақ бойынша: [көмекші, қалған бөлігі] — болымды, болымсыз және сұраулы түрлер осыдан құралады */
+  function parts(t, s, v, passive) {
+    var ing = V.ing(v), v3 = V.v3(v);
+    if (passive && v === "be") return null;
+    if (passive) {
+      var P = { ps: [beP(s), "", v3], pc: [beP(s), "being", v3], pp: [hv(s), "been", v3], pas: [beW(s), "", v3], pac: [beW(s), "being", v3], pap: ["had", "been", v3], fs: ["will", "be", v3], fp: ["will", "have been", v3] }[t];
+      return P ? { aux: P[0], mid: P[1], main: P[2] } : null;
+    }
+    if (v === "be") {
+      if (/c$/.test(t)) return null; // be етістігі созылыңқы шақтарда іс жүзінде қолданылмайды
+      var B = { ps: [beP(s), "", ""], pas: [beW(s), "", ""] }[t];
+      if (B) return { aux: B[0], mid: B[1], main: B[2], beMain: true };
+    }
+    switch (t) {
+      case "ps": return { aux: third(s) ? "does" : "do", main: v, pos: third(s) ? V.s3(v) : v };
+      case "pas": return { aux: "did", main: v, pos: V.v2(v) };
+      case "pc": return { aux: beP(s), main: ing };
+      case "pac": return { aux: beW(s), main: ing };
+      case "pp": return { aux: hv(s), main: v3 };
+      case "pap": return { aux: "had", main: v3 };
+      case "ppc": return { aux: hv(s), mid: "been", main: ing };
+      case "papc": return { aux: "had", mid: "been", main: ing };
+      case "fs": return { aux: "will", main: v };
+      case "fc": return { aux: "will", mid: "be", main: ing };
+      case "fp": return { aux: "will", mid: "have", main: v3 };
+      case "fpc": return { aux: "will", mid: "have been", main: ing };
+    }
+  }
+  function forms(t, s, v, rest, passive) {
+    var p = parts(t, s, v, passive); if (!p) return null;
+    var tail = [p.mid, p.main].filter(Boolean).join(" "), r = rest ? " " + rest : "";
+    var subj = s === "I" ? "I" : s;
+    var pos = p.pos ? subj + " " + p.pos : subj + " " + p.aux + (tail ? " " + tail : "");
+    var neg = p.pos ? subj + " " + NEG[p.aux] + " " + p.main : subj + " " + (NEG[p.aux] || p.aux + " not") + (tail ? " " + tail : "");
+    var q = cap(p.aux) + " " + (s === "I" ? "I" : s) + (tail ? " " + tail : "");
+    return { pos: cap(pos) + r + ".", neg: cap(neg) + r + ".", q: q + r + "?", aux: p.aux, main: p.main, mid: p.mid, simplePos: !!p.pos };
+  }
+  Shyn.engForms = forms; // тест үшін
+
+  /* ================= Шақ құрастырғыш ================= */
+  var B = { s: "she", v: "write", t: "pp", rest: "a letter", passive: false };
+  function verbOptions() {
+    var all = Object.keys(IRR).map(function (k) { return [k, IRR[k].kz, 1]; }).concat(Object.keys(REG).map(function (k) { return [k, REG[k], 0]; }));
+    all.sort(function (a, b) { return a[0].localeCompare(b[0]); });
+    return all.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === B.v ? " selected" : "") + '>' + x[0] + ' — ' + esc(x[1]) + (x[2] ? " (бұрыс)" : "") + '</option>'; }).join("");
+  }
+  function buildPage() {
+    view.innerHTML =
+      '<header class="page-head"><h1>Шақ құрастырғыш</h1><p class="muted">Бастауышты, етістікті және шақты таңдаңыз — сөйлемнің болымды, болымсыз және сұраулы түрі формуласымен бірге шығады. Ырықсыз етісті де көруге болады.</p></header>' +
+      engNav("build") +
+      '<section class="bform">' +
+        '<div class="bform__f"><span class="lbl">Бастауыш (subject)</span><div class="chips">' + SUBJ.map(function (x) { return '<button class="chip' + (B.s === x[0] ? " is-on" : "") + '" data-bs="' + x[0] + '">' + x[0] + ' <small>' + x[1] + '</small></button>'; }).join("") + '</div></div>' +
+        '<label class="bform__f lbl">Етістік<select class="field" id="bV">' + verbOptions() + '</select></label>' +
+        '<label class="bform__f lbl">Толықтауыш / жалғасы (міндетті емес)<input class="field" id="bR" value="' + esc(B.rest) + '" placeholder="a letter, to school, every day…"></label>' +
+        '<label class="check"><input type="checkbox" id="bP"' + (B.passive ? " checked" : "") + '> Ырықсыз етіс (Passive)</label>' +
+      '</section>' +
+      '<div id="bOut"></div>';
+    U.on("[data-bs]", "click", function (e, el) { B.s = el.getAttribute("data-bs"); U.$$("[data-bs]").forEach(function (b) { b.classList.toggle("is-on", b === el); }); drawBuild(); }, view);
+    U.$("#bV").addEventListener("change", function () { B.v = this.value; B.rest = ""; U.$("#bR").value = ""; drawBuild(); });
+    U.$("#bR").addEventListener("input", function () { B.rest = this.value.trim(); drawBuild(); });
+    U.$("#bP").addEventListener("change", function () { B.passive = this.checked; drawBuild(); });
+    drawBuild();
+  }
+  function drawBuild() {
+    var out = U.$("#bOut"); if (!out) return;
+    var info = IRR[B.v] ? '<p class="vinfo"><b>' + B.v + '</b> — бұрыс етістік: V2 <b>' + IRR[B.v].v2 + '</b>, V3 <b>' + IRR[B.v].v3 + '</b>, -ing <b>' + V.ing(B.v) + '</b></p>'
+      : '<p class="vinfo"><b>' + B.v + '</b> — дұрыс етістік: V2/V3 <b>' + V.ed(B.v) + '</b>, -ing <b>' + V.ing(B.v) + '</b>, he/she/it <b>' + V.s3(B.v) + '</b></p>';
+    var groups = [["Осы шақ", 0], ["Өткен шақ", 4], ["Келер шақ", 8]];
+    out.innerHTML = info + groups.map(function (g) {
+      return '<section class="bgroup"><h2>' + g[0] + '</h2><div class="bcards">' + TENSES.slice(g[1], g[1] + 4).map(function (t) {
+        var tp = G.topics[t[2]], f = forms(t[0], B.s, B.v, B.rest, B.passive);
+        if (!f) return '<article class="bcard bcard--' + tp.imp + ' is-na"><h3>' + t[1] + '</h3><p class="muted">' + (B.passive ? "Ырықсыз етісте" : "be етістігімен") + ' бұл шақ іс жүзінде қолданылмайды.</p></article>';
+        return '<article class="bcard bcard--' + tp.imp + '"><header><h3>' + t[1] + '</h3><a class="link" href="#/eng/t/' + t[2] + '">ереже</a></header>' +
+          '<p class="bfx">' + esc(B.passive ? "be (" + t[1] + ") + V3" : tp.form["+"]) + '</p>' +
+          '<ul class="bsent"><li><span class="sg sg--p">+</span>' + hl(f.pos, f) + '</li><li><span class="sg sg--n">−</span>' + hl(f.neg, f) + '</li><li><span class="sg sg--q">?</span>' + hl(f.q, f) + '</li></ul>' +
+          '<p class="bmk">' + esc(tp.markers.slice(0, 3).join(" · ")) + '</p></article>';
+      }).join("") + '</div></section>';
+    }).join("");
+  }
+  function hl(sentence, f) {
+    // көмекші етістік пен негізгі етістікті ерекшелеу
+    var words = sentence.split(" "), keys = {};
+    [f.aux, NEG[f.aux], f.main, f.mid].concat(f.mid ? f.mid.split(" ") : []).forEach(function (k) { if (k) keys[k.toLowerCase()] = 1; });
+    if (f.simplePos) keys[(sentence.split(" ")[1] || "").replace(/[.?]$/, "").toLowerCase()] = 1;
+    return words.map(function (w) { var c = w.replace(/[.?]$/, ""), end = w.slice(c.length); return keys[c.toLowerCase()] ? '<mark>' + esc(c) + '</mark>' + end : esc(w); }).join(" ");
+  }
+
+  /* ================= Есімдіктер кестесі және тренажер ================= */
+  var PRON = [["I", "me", "my", "mine", "myself", "мен"], ["you", "you", "your", "yours", "yourself", "сен / сіз"], ["he", "him", "his", "his", "himself", "ол (ер)"], ["she", "her", "her", "hers", "herself", "ол (әйел)"], ["it", "it", "its", "—", "itself", "ол (зат)"], ["we", "us", "our", "ours", "ourselves", "біз"], ["they", "them", "their", "theirs", "themselves", "олар"]];
+  var PCOL = [["Subject", "Бастауыш — етістіктің алдында", "I like tea."], ["Object", "Толықтауыш — етістік/предлогтан кейін", "She likes me."], ["Possessive adj.", "Зат есімнің алдында", "my book"], ["Possessive pron.", "Зат есімсіз, жеке", "It's mine."], ["Reflexive", "Өзіне бағытталған әрекет", "I did it myself."]];
+  var PD = null;
+  function pronPage() {
+    view.innerHTML =
+      '<header class="page-head"><h1>Есімдіктер</h1><p class="muted">Subject етістіктің алдында тұрады (кім?), object — етістіктен немесе предлогтан кейін (кімді? кімге?). Кестені қарап, төмендегі тренажерде тексеріңіз.</p></header>' +
+      engNav("pron") +
+      '<div class="tablewrap"><table class="pron"><thead><tr><th></th>' + PCOL.map(function (c) { return '<th scope="col">' + c[0] + '<small>' + c[1] + '</small></th>'; }).join("") + '</tr></thead><tbody>' +
+        PRON.map(function (r) { return '<tr><th scope="row">' + r[5] + '</th>' + r.slice(0, 5).map(function (x, i) { return '<td class="pc' + i + '">' + x + '</td>'; }).join("") + '</tr>'; }).join("") +
+      '</tbody><tfoot><tr><th>Мысал</th>' + PCOL.map(function (c) { return '<td>' + c[2] + '</td>'; }).join("") + '</tr></tfoot></table></div>' +
+      '<section class="block"><h2>Тренажер: қай есімдік қойылады?</h2><div id="pd"></div></section>' +
+      '<div class="lessonbar"><a class="btn btn--line" href="#/eng/t/pronouns">Ереже және сабақ</a></div>';
+    PD = { n: 0, ok: 0 }; nextPron();
+  }
+  var PTEMPL = [
+    [0, "___ am a student.", 0], [0, "___ lives in Almaty.", 2], [0, "___ are playing football.", 6], [0, "___ is my sister.", 3],
+    [1, "Can you help ___?", 0], [1, "I saw ___ at the shop yesterday.", 2], [1, "This present is for ___.", 3], [1, "Please call ___ later.", 5], [1, "Look at ___! They're so funny.", 6],
+    [2, "This is ___ car.", 2], [2, "We love ___ teacher.", 5], [2, "The cat is eating ___ food.", 4], [2, "Is this ___ bag, Dana?", 1],
+    [3, "This book is not yours, it's ___.", 0], [3, "These seats are ___.", 6], [3, "The red bike is ___ — she bought it last week.", 3],
+    [4, "He cut ___ while cooking.", 2], [4, "We enjoyed ___ at the party.", 5], [4, "She made the cake ___.", 3]
+  ];
+  function nextPron() {
+    var el = U.$("#pd"); if (!el) return;
+    var t = PTEMPL[Math.floor(Math.random() * PTEMPL.length)], col = t[0], right = PRON[t[2]][col];
+    var pool = PRON.map(function (r) { return r[col]; }).filter(function (x) { return x !== "—" && x !== right; });
+    var other = [0, 1, 2, 3, 4].filter(function (c) { return c !== col; }).map(function (c) { return PRON[t[2]][c]; }).filter(function (x) { return x !== right && x !== "—"; });
+    var opts = U.shuffle([right].concat(U.shuffle(other).slice(0, 2)).concat(U.shuffle(pool).slice(0, 1))).filter(function (x, i, a) { return a.indexOf(x) === i; });
+    PD.cur = { t: t, right: right, col: col };
+    el.innerHTML = '<p class="pd__s">' + esc(t[1]).replace("___", '<span class="gap">?</span>') + '</p>' +
+      '<div class="lopts">' + opts.map(function (o) { return '<button class="lopt" data-p="' + esc(o) + '">' + esc(o) + '</button>'; }).join("") + '</div>' +
+      '<p class="muted pd__score">' + PD.ok + ' / ' + PD.n + ' дұрыс</p>';
+    U.on("[data-p]", "click", function (e, b) {
+      var v = b.getAttribute("data-p"), ok = v === PD.cur.right; PD.n++; if (ok) PD.ok++;
+      U.$$("[data-p]").forEach(function (x) { x.disabled = true; if (x.getAttribute("data-p") === PD.cur.right) x.classList.add("is-ok"); });
+      if (!ok) b.classList.add("is-no");
+      var expl = ok ? "Дұрыс!" : "Дұрыс жауап: " + PD.cur.right;
+      el.insertAdjacentHTML("beforeend", '<div class="lfb lfb--' + (ok ? "ok" : "no") + '"><div><b>' + expl + '</b><p>' + esc(PCOL[PD.cur.col][0] + " — " + PCOL[PD.cur.col][1].toLowerCase()) + '.</p></div><button class="btn ' + (ok ? "btn--ok" : "btn--no") + '" id="pdNext">Келесі</button></div>');
+      if (ok) addXP(2);
+      var sc = el.querySelector(".pd__score"); if (sc) sc.textContent = PD.ok + " / " + PD.n + " дұрыс";
+      U.$("#pdNext").addEventListener("click", nextPron); U.$("#pdNext").focus();
+    }, el);
+  }
+
+  /* ================= Бұрыс етістіктер: кесте және тренажер ================= */
+  var VT = { q: "", mode: "table", cur: null, n: 0, ok: 0 };
+  function verbsPage() {
+    var list = G.irregular.filter(function (r) { var q = VT.q.toLowerCase(); return !q || r.join(" ").toLowerCase().indexOf(q) >= 0; });
+    var known = E.verbs || (E.verbs = {});
+    view.innerHTML =
+      '<header class="page-head"><h1>Бұрыс етістіктер</h1><p class="muted">' + G.irregular.length + ' ең жиі етістік. Кестеден қарап, тренажерде V2 мен V3 түрін жазып жаттаңыз. Үш рет қатарынан дұрыс жазылған етістік «жатталды» деп белгіленеді.</p></header>' +
+      engNav("verbs") +
+      '<div class="toolbar"><div class="seg" role="group"><button data-vm="table" class="' + (VT.mode === "table" ? "is-on" : "") + '">Кесте</button><button data-vm="train" class="' + (VT.mode === "train" ? "is-on" : "") + '">Тренажер</button></div>' +
+        (VT.mode === "table" ? '<input class="field toolbar__search" id="vq" type="search" placeholder="Іздеу: go, жазу…" value="' + esc(VT.q) + '">' : "") +
+        '<span class="muted">Жатталды: ' + Object.keys(known).filter(function (k) { return known[k] >= 3; }).length + ' / ' + G.irregular.length + '</span></div>' +
+      (VT.mode === "table" ? '<div class="tablewrap"><table class="verbs"><thead><tr><th>V1</th><th>V2 · Past Simple</th><th>V3 · Participle</th><th>Аудармасы</th></tr></thead><tbody>' +
+        list.map(function (r) { var k = known[r[0]] >= 3; return '<tr' + (k ? ' class="is-known"' : "") + '><td><b>' + r[0] + '</b></td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + esc(r[3]) + (k ? ' <span class="tag">жатталды</span>' : "") + '</td></tr>'; }).join("") +
+        '</tbody></table></div>' : '<section class="vtrain" id="vt"></section>');
+    U.on("[data-vm]", "click", function (e, el) { VT.mode = el.getAttribute("data-vm"); verbsPage(); }, view);
+    var q = U.$("#vq"); if (q) q.addEventListener("input", function () { VT.q = this.value; var pos = this.selectionStart; verbsPage(); var n = U.$("#vq"); n.focus(); n.setSelectionRange(pos, pos); });
+    if (VT.mode === "train") nextVerb();
+  }
+  function nextVerb() {
+    var el = U.$("#vt"); if (!el) return;
+    var known = E.verbs || {};
+    var pool = G.irregular.filter(function (r) { return (known[r[0]] || 0) < 3; }); if (!pool.length) pool = G.irregular;
+    var r = pool[Math.floor(Math.random() * pool.length)]; VT.cur = r;
+    el.innerHTML = '<p class="vt__k">Аудармасы: <b>' + esc(r[3]) + '</b></p><p class="vt__v1">' + r[0] + '</p>' +
+      '<div class="vt__in"><label class="lbl">V2 (Past Simple)<input class="field" id="v2" autocomplete="off" autocapitalize="off" spellcheck="false"></label>' +
+      '<label class="lbl">V3 (Participle)<input class="field" id="v3" autocomplete="off" autocapitalize="off" spellcheck="false"></label></div>' +
+      '<div class="lfoot"><button class="btn btn--ghost" id="vSkip">Көрсету</button><button class="btn btn--primary" id="vCheck">Тексеру</button></div>' +
+      '<p class="muted">' + VT.ok + ' / ' + VT.n + ' дұрыс · Enter — тексеру</p>';
+    U.$("#v2").focus();
+    U.$("#vCheck").addEventListener("click", checkVerb);
+    U.$("#vSkip").addEventListener("click", function () { checkVerb(true); });
+    el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); var n = U.$("#vNext"); if (n) n.click(); else if (document.activeElement && document.activeElement.id === "v2") U.$("#v3").focus(); else checkVerb(); } });
+  }
+  function checkVerb(giveUp) {
+    var r = VT.cur, a2 = (U.$("#v2").value || "").trim().toLowerCase(), a3 = (U.$("#v3").value || "").trim().toLowerCase();
+    var ok2 = r[1].split(" / ").indexOf(a2) >= 0, ok3 = r[2].split(" / ").indexOf(a3) >= 0, ok = !giveUp && ok2 && ok3;
+    E.verbs = E.verbs || {}; E.verbs[r[0]] = ok ? (E.verbs[r[0]] || 0) + 1 : 0; VT.n++; if (ok) { VT.ok++; addXP(2); } else save();
+    var el = U.$("#vt");
+    U.$("#v2").classList.add(ok2 && !giveUp ? "is-ok" : "is-no"); U.$("#v3").classList.add(ok3 && !giveUp ? "is-ok" : "is-no");
+    U.$("#v2").disabled = U.$("#v3").disabled = true;
+    var foot = el.querySelector(".lfoot");
+    foot.outerHTML = '<div class="lfb lfb--' + (ok ? "ok" : "no") + '"><div><b>' + (ok ? "Дұрыс!" : "Дұрыс жауап:") + '</b><p class="lfb__ans">' + r[0] + ' — ' + r[1] + ' — ' + r[2] + '</p></div><button class="btn ' + (ok ? "btn--ok" : "btn--no") + '" id="vNext">Келесі</button></div>';
+    U.$("#vNext").addEventListener("click", nextVerb); U.$("#vNext").focus();
   }
 
   /* ================= Пернетақта ================= */
