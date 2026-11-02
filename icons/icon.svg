@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#15233F"/>
+  <circle cx="256" cy="262" r="196" fill="#1D2F52"/>
+  <!-- қошқар мүйіз өрнегі -->
+  <g fill="none" stroke="#D6981C" stroke-width="17" stroke-linecap="round" transform="translate(256 150)">
+    <path d="M0 22V8C0-28 36-44 60-32C84-20 79 14 55 14C38 14 38-6 50-6"/>
+    <path d="M0 8C0-28 -36-44 -60-32C-84-20 -79 14 -55 14C-38 14 -38-6 -50-6"/>
+  </g>
+  <!-- шың: тау жотасы -->
+  <path d="M104 384 L210 262 L248 304 L300 214 L408 384 Z" fill="#D6981C"/>
+  <path d="M300 214 L328 258 L312 252 L300 268 L288 252 L272 258 Z" fill="#F4E3B8"/>
+  <rect x="104" y="384" width="304" height="10" rx="5" fill="#B57C10"/>
+</svg>

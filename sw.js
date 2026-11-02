@@ -1,0 +1,131 @@
+/* Шың — service worker: сайтты басты экранға орнатуға және интернетсіз ашуға мүмкіндік береді.
+   Бұл файл tools/gen_sw.py арқылы жасалады — қолмен өзгертпеңіз. */
+var VERSION = "shyn-1ad74dcfad";
+var PRECACHE = [
+"./",
+"index.html",
+"manifest.webmanifest",
+"favicon.svg",
+"css/app.css",
+"js/app.js",
+"js/core.js",
+"js/english.js",
+"js/extras.js",
+"js/pwa.js",
+"data/flashcards.js",
+"data/grammar.js",
+"data/grammar2.js",
+"data/index.js",
+"data/sorting.js",
+"data/synonyms.js",
+"data/sets/v1-algo.js",
+"data/sets/v1-db.js",
+"data/sets/v1-english.js",
+"data/sets/v17-algo.js",
+"data/sets/v17-db.js",
+"data/sets/v17-english.js",
+"data/sets/v18-algo.js",
+"data/sets/v18-db.js",
+"data/sets/v18-english.js",
+"data/sets/v19-algo.js",
+"data/sets/v19-db.js",
+"data/sets/v19-english.js",
+"data/sets/v2-algo.js",
+"data/sets/v2-db.js",
+"data/sets/v2-english.js",
+"data/sets/v20-algo.js",
+"data/sets/v20-db.js",
+"data/sets/v20-english.js",
+"data/sets/v21-algo.js",
+"data/sets/v21-db.js",
+"data/sets/v21-english.js",
+"data/sets/v21-fundamentals.js",
+"data/sets/v22-algo.js",
+"data/sets/v22-db.js",
+"data/sets/v22-english.js",
+"data/sets/v22-fundamentals.js",
+"data/sets/v23-algo.js",
+"data/sets/v23-db.js",
+"data/sets/v23-english.js",
+"data/sets/v24-algo.js",
+"data/sets/v24-db.js",
+"data/sets/v24-english.js",
+"data/sets/v26-algo.js",
+"data/sets/v26-db.js",
+"data/sets/v26-english.js",
+"data/sets/v27-algo.js",
+"data/sets/v27-db.js",
+"data/sets/v27-english.js",
+"data/sets/v28-algo.js",
+"data/sets/v28-db.js",
+"data/sets/v29-algo.js",
+"data/sets/v29-db.js",
+"data/sets/v3-algo.js",
+"data/sets/v3-db.js",
+"data/sets/v3-english.js",
+"data/sets/v4-algo.js",
+"data/sets/v4-db.js",
+"data/sets/v4-english.js",
+"data/sets/v5-algo.js",
+"data/sets/v5-db.js",
+"data/sets/v5-english.js",
+"data/sets/v6-algo.js",
+"data/sets/v6-db.js",
+"data/sets/v6-english.js",
+"data/sets/v7-algo.js",
+"data/sets/v7-db.js",
+"data/sets/v7-english.js",
+"data/sets/v9-algo.js",
+"data/sets/v9-db.js",
+"data/sets/v9-english.js",
+"data/sets/v9-fundamentals.js",
+"icons/apple-touch-icon.png",
+"icons/favicon-32.png",
+"icons/favicon-48.png",
+"icons/icon-192-maskable.png",
+"icons/icon-192.png",
+"icons/icon-512-maskable.png",
+"icons/icon-512.png",
+"icons/icon.svg"
+];
+var RUNTIME = "shyn-runtime";
+
+self.addEventListener("install", function (e) {
+  e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(PRECACHE); }).then(function () { return self.skipWaiting(); }));
+});
+self.addEventListener("activate", function (e) {
+  e.waitUntil(caches.keys().then(function (keys) {
+    return Promise.all(keys.filter(function (k) { return k !== VERSION && k !== RUNTIME; }).map(function (k) { return caches.delete(k); }));
+  }).then(function () { return self.clients.claim(); }));
+});
+self.addEventListener("fetch", function (e) {
+  var req = e.request;
+  if (req.method !== "GET") return;
+  var url = new URL(req.url);
+  // Бет өзі: алдымен желі (жаңа нұсқа), желі жоқ болса — кэш
+  if (req.mode === "navigate") {
+    e.respondWith(fetch(req).then(function (r) {
+      var copy = r.clone(); caches.open(VERSION).then(function (c) { c.put("index.html", copy); }); return r;
+    }).catch(function () { return caches.match("index.html", { ignoreSearch: true }); }));
+    return;
+  }
+  // Сайттың өз файлдары: кэштен бірден, жоқ болса желіден алып сақтау (аудио да осында)
+  if (url.origin === self.location.origin) {
+    e.respondWith(caches.match(req, { ignoreSearch: true }).then(function (hit) {
+      return hit || fetch(req).then(function (r) {
+        if (r.ok && !req.headers.get("range")) { var copy = r.clone(); caches.open(RUNTIME).then(function (c) { c.put(req, copy); }); }
+        return r;
+      });
+    }));
+    return;
+  }
+  // Google қаріптері: кэште болса — бірден, әйтпесе желіден алып сақтау
+  if (/fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) {
+    e.respondWith(caches.open(RUNTIME).then(function (c) {
+      return c.match(req).then(function (hit) {
+        var net = fetch(req).then(function (r) { c.put(req, r.clone()); return r; }).catch(function () { return hit; });
+        return hit || net;
+      });
+    }));
+  }
+});

@@ -7,10 +7,18 @@
   <meta name="description" content="Магистратураға кешенді тестілеуге дайындық: алгоритмдер, деректер қоры, ағылшын тілі. Түсіндірмелі нұсқалар, қателермен жұмыс, аралықпен қайталау.">
   <meta name="theme-color" content="#15233F">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="application-name" content="Шың">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Шың">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=5">
+  <link rel="stylesheet" href="css/app.css?v=6">
 </head>
 <body class="is-loading">
   <a class="skip" href="#view">Мазмұнға өту</a>
@@ -31,6 +39,7 @@
       <a class="navlink" data-r="stats" href="#/stats">Статистика</a>
       <a class="navlink" data-r="history" href="#/history">Тесттер тарихы</a>
       <a class="navlink" data-r="settings" href="#/settings">Баптаулар</a>
+      <a class="navlink" data-r="install" href="#/install">Басты экранға орнату</a>
     </nav>
     <button class="themebtn" id="themeBtn" aria-label="Тақырыпты ауыстыру"><span aria-hidden="true"></span>Тақырып</button>
   </aside>
@@ -56,15 +65,16 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="js/core.js?v=5"></script>
+  <script src="js/core.js?v=6"></script>
   <script src="data/flashcards.js"></script>
   <script src="data/sorting.js"></script>
   <script src="data/synonyms.js"></script>
-  <script src="js/app.js?v=5"></script>
-  <script src="js/extras.js?v=5"></script>
-  <script src="data/grammar.js?v=5"></script>
-  <script src="data/grammar2.js?v=5"></script>
-  <script src="js/english.js?v=5"></script>
+  <script src="js/app.js?v=6"></script>
+  <script src="js/extras.js?v=6"></script>
+  <script src="data/grammar.js?v=6"></script>
+  <script src="data/grammar2.js?v=6"></script>
+  <script src="js/english.js?v=6"></script>
+  <script src="js/pwa.js?v=6"></script>
   <script>
     /* Мобильді «Тағы» беті — бүйірлік мәзірдің толық тізімі */
     Shyn.route("more", function () {
