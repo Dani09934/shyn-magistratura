@@ -26,11 +26,11 @@
         '<select class="field" id="cTopic"><option value="">Барлық тақырып</option>' + topics.sort().map(function (t) { return '<option' + (t === C.topic ? " selected" : "") + '>' + esc(t) + '</option>'; }).join("") + '</select>' +
         '<label class="check"><input type="checkbox" id="cNew"' + (C.onlyNew ? " checked" : "") + '> Тек білмейтіндерім</label>' +
         '<label class="check"><input type="checkbox" id="cShuf"' + (C.shuffle ? " checked" : "") + '> Араластыру</label></div>' +
-      '<div class="deckbar"><span>Барлығы <b>' + pool.length + '</b></span><span>Білемін <b>' + know + '</b></span>' + Shyn.bar(pool.length ? know / pool.length * 100 : 0, "good") +
+      '<div class="deckbar"><span>Барлығы <b>' + pool.length + '</b></span><span>Білемін <b>' + know + '</b></span><span>Қайталау керек <b>' + pool.filter(function (c) { return Store.cardStatus(c.id) === "unknown"; }).length + '</b></span>' + Shyn.bar(pool.length ? know / pool.length * 100 : 0, "good") +
         '<button class="link" id="cReset">Прогресті тазалау</button></div>' +
       (c ? '<div class="stage"><p class="muted">Карточка ' + (C.pos + 1) + " / " + C.deck.length + " · " + esc(c.topic) + (st ? " · " + (st === "know" ? "білемін" : "қайталау керек") : "") + '</p>' +
         '<button class="flash' + (C.flipped ? " is-flipped" : "") + '" id="flash" aria-label="Карточканы аудару">' +
-          '<span class="flash__in"><span class="flash__face flash__face--front"><small>' + Shyn.SUBJECT[c.subject].short + '</small><span>' + Shyn.fmt(c.front) + '</span><em>Аудару үшін басыңыз немесе Space</em></span>' +
+          '<span class="flash__in"><span class="flash__face flash__face--front"><small>' + Shyn.SUBJECT[c.subject].short + '</small><span>' + Shyn.fmt(c.front) + '</span><em>Аудару үшін басыңыз · телефонда оңға сипау — білемін, солға — білмеймін</em></span>' +
           '<span class="flash__face flash__face--back"><small>Жауап</small><span>' + Shyn.fmt(c.back) + '</span></span></span></button>' +
         '<div class="inline inline--center"><button class="btn btn--ghost" id="cPrev">Алдыңғы</button>' +
           '<button class="btn btn--no" id="cNo">Білмеймін</button><button class="btn btn--ok" id="cYes">Білемін</button>' +
@@ -43,6 +43,14 @@
     U.$("#cReset").addEventListener("click", function () { Shyn.ask("Карточкалар бойынша прогресті тазалайсыз ба?", "Тазалау", "Болдырмау", function () { Store.clearCards(Shyn.cards.map(function (x) { return x.id; })); buildDeck(); Shyn.render(); }); });
     if (!c) return;
     U.$("#flash").addEventListener("click", flip);
+    // Телефонда сипау: оңға — білемін, солға — білмеймін
+    var fx = null, fl = U.$("#flash");
+    fl.addEventListener("touchstart", function (e) { fx = e.touches[0].clientX; }, { passive: true });
+    fl.addEventListener("touchmove", function (e) { if (fx == null) return; var dx = e.touches[0].clientX - fx; fl.style.transform = "translateX(" + dx * 0.6 + "px) rotate(" + dx / 40 + "deg)"; fl.classList.toggle("is-yes", dx > 60); fl.classList.toggle("is-no", dx < -60); }, { passive: true });
+    fl.addEventListener("touchend", function (e) {
+      if (fx == null) return; var dx = e.changedTouches[0].clientX - fx; fx = null; fl.style.transform = ""; fl.classList.remove("is-yes", "is-no");
+      if (Math.abs(dx) > 60) { e.preventDefault(); judge(dx > 0 ? "know" : "unknown"); }
+    });
     U.$("#cPrev").addEventListener("click", function () { move(-1); });
     U.$("#cNext").addEventListener("click", function () { move(1); });
     U.$("#cNo").addEventListener("click", function () { judge("unknown"); });

@@ -221,6 +221,7 @@
         '<div class="streak"><div class="streak__strip">' + strip + '</div><div class="streak__t">' + (streak ? "Қатарынан " + streak + " күн оқудасыз" : "Бүгін бастап, күн сайын аздап оқыңыз") + '</div></div></div>' +
       '</section>' +
       (Shyn.Game ? Shyn.Game.homeHTML() : "") +
+      (Shyn.planHTML ? Shyn.planHTML() : "") +
       (sessions ? '<section class="block"><h2>Жалғастыру</h2><div class="resumes">' + sessions + '</div></section>' : "") +
       '<section class="block"><h2>Бүгінгі жоспар</h2><div class="actions actions--4">' +
         action("review", "Қайталау", (due + wrong) ? (due ? due + " сұрақты қайталау уақыты келді" : "") + (due && wrong ? ", " : "") + (wrong ? wrong + " қате сұрақ күтіп тұр" : "") : "20 сұрақтық диагностика — әлсіз тақырыптарыңды анықтайды", due + wrong, due ? "Қайталау" : wrong ? "Қателерді шығару" : "Бастау", wrong ? '<a class="act__link" href="#/mistakes">Қателер дәптері · ' + wrong + '</a>' : "") +
@@ -230,7 +231,7 @@
       '</div></section>' +
       (Shyn.Game ? Shyn.Game.qotdHTML() : "");
 
-    if (Shyn.Game) Shyn.Game.bindHome();
+    if (Shyn.Game) Shyn.Game.bindHome(); if (Shyn.planBind) Shyn.planBind(view);
     var sd = U.$("#setDate"); if (sd) sd.addEventListener("click", function () { Shyn.go("#/settings"); });
     U.$("#examBtn").addEventListener("click", openExamModal);
     U.on("[data-resume]", "click", function (e, el) { resumeSession(el.getAttribute("data-resume")); }, view);

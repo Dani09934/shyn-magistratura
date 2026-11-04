@@ -9,7 +9,7 @@
   var c = function (s) { return "<code>" + esc(s) + "</code>"; };
   var pre = function (s) { return '<pre class="code"><code>' + esc(s) + "</code></pre>"; };
 
-  var CATS = [["exam", "Емтихан тактикасы"], ["tgo", "ТГО формулалары"], ["algo", "Алгоритм формулалары"], ["sql", "SQL үлгілері"], ["trap", "Жиі тұзақтар"], ["eng", "Ағылшын шақтары"], ["mnem", "Мнемоника"]];
+  var CATS = [["exam", "Емтихан тактикасы"], ["tgo", "ТГО: математика"], ["ana", "ТГО: аналитикалық ойлау"], ["algo", "Алгоритм формулалары"], ["sql", "SQL үлгілері"], ["trap", "Жиі тұзақтар"], ["eng", "Ағылшын шақтары"], ["mnem", "Мнемоника"]];
   var C = [
     ["exam", "Балл қалай есептеледі", "<ul><li>Бір дұрыс жауапты сұрақ: дұрыс — <b>1 балл</b>, әйтпесе 0.</li><li>Бірнеше жауапты сұрақ (k дұрыс, k ≤ 3), ең көбі <b>2 балл</b>: барлық дұрысы қатесіз — 2; кемінде max(k−1, 1) дұрыс және ең көбі 1 қате — 1; 2 не одан көп қате — 0.</li><li>Сондықтан алгоритмдер 30 × 1 = 30 балл, деректер қоры 20 × 2 = 40 балл.</li></ul>"],
     ["exam", "Бірнеше жауапты сұраққа тактика", "<ul><li>Сенімді жауаптарды ғана белгіле: бір «күмәнді» артық таңдау балды 2-ден 1-ге түсіреді, екеуі — 0-ге.</li><li>Бір дұрысын ғана білсең де белгіле: k = 1 немесе k = 2 болса, ол 1 балл әкелуі мүмкін.</li><li>Бос қалдыру 0 береді — жауапсыз сұрақ қалдырма.</li></ul>"],
@@ -61,6 +61,20 @@
     ["eng", "Шартты сөйлемдер", "<ul><li>0: If + Present, Present — табиғат заңы.</li><li>1: If + Present, will + V1 — нақты мүмкіндік.</li><li>2: If + Past, would + V1 — қазіргі қиял (If I were…).</li><li>3: If + Past Perfect, would have + V3 — өткендегі өкініш.</li><li>If-тен кейін will қойылмайды.</li></ul>"],
     ["eng", "Ырықсыз етіс (Passive)", "<p>be (керекті шақта) + V3.</p>" + pre("is written · is being written · has been written\nwas written · will be written · can be written")],
 
+    ["tgo", "Квадраттық теңдеу", "<ul><li>ax² + bx + c = 0: D = b² − 4ac; x = (−b ± √D) / 2a.</li><li>D > 0 — екі түбір, D = 0 — бір, D < 0 — нақты түбір жоқ.</li><li>Виет: x₁ + x₂ = −b/a, x₁·x₂ = c/a. x² − 5x + 6 = 0 → 2 және 3.</li><li>Нұсқаларды теңдеуге қойып тексеру көбіне есептеуден тезірек.</li></ul>"],
+    ["tgo", "Бөлшектер мен ондық бөлшектер", "<ul><li>Қосу/азайту — ортақ бөлімге келтір. Көбейту — алым·алым / бөлім·бөлім. Бөлу — екіншісін аударып көбейт.</li><li>Жиі кездесетіндер: 1/2 = 0,5; 1/4 = 0,25; 1/5 = 0,2; 1/8 = 0,125; 3/4 = 0,75.</li><li>Бөлшектерді салыстыру: ad мен bc-ны салыстыр (a/b ? c/d).</li><li>Бөлім мен алымды бір санға көбейтсе, бөлшек өзгермейді.</li></ul>"],
+    ["tgo", "Қатынас және пропорция", "<ul><li>a : b = c : d → a·d = b·c (шеткі мүшелер көбейтіндісі = ортаңғылардың көбейтіндісі).</li><li>Тура пропорция: біреуі k есе өссе, екіншісі де k есе өседі (баға мен сан).</li><li>Кері пропорция: біреуі k есе өссе, екіншісі k есе кемиді (жылдамдық пен уақыт, жұмысшы мен күн).</li><li>Санды 2 : 3 қатынасында бөлу: 2x + 3x = сан.</li></ul>"],
+    ["tgo", "Функция және кесте", "<ul><li>y = kx + b: k — көлбеулік (x бірге өскенде y неше өседі), b — Oy осімен қиылысу.</li><li>Кестеден функцияны табу: екі нүктені ал, k = (y₂ − y₁)/(x₂ − x₁).</li><li>f(x) берілсе, мәнді қойып есепте: f(2) = ... ; x-тің орнына жақшаны толық қой.</li></ul>"],
+    ["tgo", "Көлем және бет ауданы", "<ul><li>Тікбұрышты параллелепипед: V = abc, бет ауданы S = 2(ab + bc + ac), қырларының қосындысы 4(a + b + c).</li><li>Куб: V = a³, S = 6a². Қыры k есе → аудан k² есе, көлем k³ есе.</li><li>Цилиндр: V = πR²h.</li><li>1 л = 1 дм³ = 1000 см³.</li></ul>"],
+    ["tgo", "Теңдеулер жүйесі", "<ul><li>Қосу тәсілі: бір айнымалының коэффициенттерін теңестіріп, теңдеулерді қос не азайт.</li><li>Ауыстыру тәсілі: бір теңдеуден x-ті өрнектеп, екіншісіне қой.</li><li>Жауапты екі теңдеуге де қойып тексер — нұсқалардан тез табасың.</li></ul>"],
+
+    ["ana", "Аналитикалық бөлім: 6 тапсырма түрі", "<ul><li><b>Бос орынды толтыру</b> — мәтіннің логикасына және грамматикасына сай сөз.</li><li><b>Мәтінге тақырып қою</b> — бүкіл мәтіннің басты ойы.</li><li><b>Талдау жасау</b> — сөздің контекстегі мағынасы, түйіндеу, мәтіннен шығатын қорытынды.</li><li><b>Дереккөздер</b> — екі не одан көп мәтінді салыстыру.</li><li><b>Стиль</b> — мәтіннің функционалдық стилі.</li><li><b>Байланыстар</b> — мәтіндер арасындағы ұқсастық, айырмашылық, себеп-салдар.</li></ul>"],
+    ["ana", "Бос орынды толтыру", "<ul><li>Бос орынның алды-артындағы 3–4 сөзді оқы: жалғау, септік, сөз табы нұсқаны бірден жояды.</li><li>Сөйлемдегі қарама-қарсылық белгілері: «бірақ», «алайда», «керісінше» — мағынасы қарсы сөз керек.</li><li>Тізбек болса («... және ...»), сөз мағынасы жағынан топқа сай болуы керек.</li><li>Таңдаған сөзді орнына қойып, сөйлемді толық оқып шық.</li></ul>"],
+    ["ana", "Мәтінге тақырып қою", "<ul><li>Тақырып бүкіл мәтінді қамтиды: тым кең («Дәстүр») де, тым тар (бір детальдың атауы) да емес.</li><li>Бірінші және соңғы сөйлемге назар аудар — басты ой көбіне сонда.</li><li>Мәтінде ең көп қайталанатын ұғымды тап.</li><li>Мысал: тұсау кесу рәсімі сипатталса, «Дәстүр» емес, «Тұсау кесу».</li></ul>"],
+    ["ana", "Талдау жасау", "<ul><li>Сөздің мағынасын сөздіктен емес, мәтіндегі сөйлемнен анықта: орнына нұсқаны қойып көр.</li><li>Инференция: мәтінде тікелей жазылмаған, бірақ одан логикалық шығатын тұжырымды таңда. Мәтінге қайшы немесе артық болжам жасайтын нұсқа — қате.</li><li>«Пікір иесі кім?» — сөйлемді кім айтып тұрғанын (автор, кейіпкер, үй иесі) мәтіннің бағытынан анықта.</li></ul>"],
+    ["ana", "Дереккөздер және байланыстар", "<ul><li>Алдымен әр мәтіннің негізгі ойын бір сөйлеммен өзіңе айт.</li><li>Ортақ тақырыпты және айырмашылықты бөлек белгіле: көзқарас, кезең, дәлел түрі.</li><li>Сұрақ «екі мәтінге де ортақ» десе — тек біреуінде бар деректі жоқ қыл.</li><li>Мақала, журнал, жыл сияқты нақты деректерді мәтіннен тура көшір: есте сақтауға сенбе.</li></ul>"],
+    ["ana", "Стильдер", "<ul><li><b>Ғылыми</b> — термин, анықтама, дәлел, бейтарап баяндау.</li><li><b>Ресми іс-қағаз</b> — өтініш, бұйрық, келісімшарт: тұрақты үлгі, эмоциясыз.</li><li><b>Публицистикалық</b> — газет, сұхбат: қоғамдық мәселе, үндеу, бағалау.</li><li><b>Көркем</b> — образ, теңеу, эпитет, диалог.</li><li><b>Ауызекі</b> — қысқа сөйлем, қаратпа, тұрмыстық сөздер.</li></ul>"],
+
     ["mnem", "SELECT орындалу реті", "<p>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT.</p><p>Бас әріптері бойынша есте сақта: <b>F</b>resh <b>W</b>ater <b>G</b>ives <b>H</b>appy <b>S</b>wimmers <b>O</b>ptions — From, Where, Group by, Having, Select, Order by.</p>"],
     ["mnem", "ACID", "<p><b>A</b>tomicity — бәрі не ештеңе. <b>C</b>onsistency — ережелер бұзылмайды. <b>I</b>solation — бір-біріне кедергі жоқ. <b>D</b>urability — COMMIT мәңгі.</p><p>Банк аударымын елесте: ақша бір шоттан шығып, екіншісіне міндетті түрде түседі.</p>"],
     ["mnem", "Стек пен кезек", "<p>Стек — асхана табақтары: соңғы қойылған табақ бірінші алынады (LIFO). Кезек — дүкен кассасы: бірінші келген бірінші кетеді (FIFO).</p>"],
@@ -68,22 +82,33 @@
     ["mnem", "Күрделілік баспалдағы", "<p>Жылдамнан баяуға: 1 < log n < √n < n < n log n < n² < n³ < 2ⁿ < n!</p>"]
   ];
 
-  var ST = { cat: "", q: "" };
-  Shyn.route("cheats", function () {
-    var total = C.length, got = C.filter(function (x) { return known[x[1]]; }).length;
+  var ST = { cat: "", q: "", hide: false };
+  Shyn.route("cheats", function (args) {
+    if (args && args[0] !== undefined) ST.cat = CATS.some(function (k) { return k[0] === args[0]; }) ? args[0] : "";
+
     view.innerHTML = '<header class="page-head"><h1>Шпаргалкалар</h1><p class="muted">Емтихан алдында 10 минутта қарап шығатын ең маңызды фактілер. Меңгергеніңді белгіле — қалғаны бірінші тұрады.</p></header>' +
       '<div class="cheatbar"><input class="field" id="chQ" type="search" placeholder="Іздеу: NULL, үйінді, Perfect…" value="' + esc(ST.q) + '">' +
-        '<div class="chprog"><span class="gbar"><i style="width:' + Math.round(got / total * 100) + '%"></i></span><small>Меңгерілді: <b>' + got + '</b> / ' + total + '</small></div></div>' +
+        '<div class="chprog" id="chProg"></div><label class="check"><input type="checkbox" id="chHide"' + (ST.hide ? " checked" : "") + '> Меңгергендерді жасыру</label></div>' +
       '<div class="seg seg--wrap" role="group"><button data-cc="" class="' + (!ST.cat ? "is-on" : "") + '">Барлығы</button>' + CATS.map(function (k) { return '<button data-cc="' + k[0] + '" class="' + (ST.cat === k[0] ? "is-on" : "") + '">' + k[1] + '</button>'; }).join("") + '</div>' +
       '<p class="chlinks">Толығырақ: <a href="#/lab/cheat">күрделілік және ДҚ кестелері</a> · <a href="#/eng/table">12 шақ кестесі</a> · <a href="#/sorting">сұрыптау күрделілігі</a></p>' +
       '<div class="chgrid" id="chGrid"></div>';
     U.$("#chQ").addEventListener("input", function () { ST.q = this.value; draw(); });
-    U.on("[data-cc]", "click", function (e, el) { ST.cat = el.getAttribute("data-cc"); Shyn.go("#/cheats"); }, view);
+    U.on("[data-cc]", "click", function (e, el) { ST.cat = el.getAttribute("data-cc"); Shyn._keepScroll = true; Shyn.go("#/cheats" + (ST.cat ? "/" + ST.cat : "")); }, view);
+    U.$("#chHide").addEventListener("change", function () { ST.hide = this.checked; draw(); });
+    var on = view.querySelector(".seg--wrap .is-on"); if (on && on.parentNode.scrollWidth > on.parentNode.clientWidth) on.parentNode.scrollLeft = on.offsetLeft - 16;
+    // бір рет қана тіркейміз: карточкадағы белгі бетті қайта салмай жаңартады
+    U.$("#chGrid").addEventListener("change", function (e) {
+      var el = e.target; if (!el.hasAttribute || !el.hasAttribute("data-kn")) return;
+      var k = el.getAttribute("data-kn");
+      if (el.checked) { known[k] = Date.now(); if (Shyn.Game) Shyn.Game.addXP(3, true); } else delete known[k];
+      save(); var card = el.closest(".chcard"); if (card) card.classList.toggle("is-known", el.checked); prog();
+      if (ST.hide && el.checked && card) { card.classList.add("is-gone"); setTimeout(draw, 350); }
+    });
     draw();
   });
   function draw() {
     var q = ST.q.trim().toLowerCase();
-    var list = C.filter(function (x) { return (!ST.cat || x[0] === ST.cat) && (!q || (x[1] + " " + x[2]).toLowerCase().indexOf(q) >= 0); });
+    var list = C.filter(function (x) { return (!ST.cat || x[0] === ST.cat) && (!ST.hide || !known[x[1]]) && (!q || (x[1] + " " + x[2].replace(/<[^>]+>/g, " ")).toLowerCase().indexOf(q) >= 0); });
     list.sort(function (a, b) { return (known[a[1]] ? 1 : 0) - (known[b[1]] ? 1 : 0); });
     var g = U.$("#chGrid"); if (!g) return;
     g.innerHTML = list.length ? list.map(function (x) {
@@ -91,11 +116,12 @@
       return '<article class="chcard chcard--' + x[0] + (known[x[1]] ? " is-known" : "") + '"><span class="chcard__k">' + cat + '</span><h3>' + esc(x[1]) + '</h3><div class="chcard__b">' + x[2] + '</div>' +
         '<label class="check"><input type="checkbox" data-kn="' + esc(x[1]) + '"' + (known[x[1]] ? " checked" : "") + '> Меңгердім</label></article>';
     }).join("") : '<p class="empty">Сәйкес шпаргалка табылмады. Басқа сөзбен іздеп көр.</p>';
-    U.on("[data-kn]", "change", function (e, el) {
-      var k = el.getAttribute("data-kn");
-      if (el.checked) { known[k] = Date.now(); if (Shyn.Game) Shyn.Game.addXP(3, true); } else delete known[k];
-      save(); Shyn.go("#/cheats");
-    }, g);
+    prog();
+  }
+  function prog() {
+    var pool = C.filter(function (x) { return !ST.cat || x[0] === ST.cat; }), got = pool.filter(function (x) { return known[x[1]]; }).length;
+    var el = U.$("#chProg"); if (!el) return;
+    el.innerHTML = '<span class="gbar"><i style="width:' + (pool.length ? Math.round(got / pool.length * 100) : 0) + '%"></i></span><small>Меңгерілді: <b>' + got + '</b> / ' + pool.length + '</small>';
   }
   Shyn.cheatsCount = function () { return C.length; };
 })(window);

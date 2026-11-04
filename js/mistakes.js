@@ -55,6 +55,9 @@
       '</details></article>';
   }
 
+  Shyn.mistakesTop = function (n, sureOnly) {
+    return collect().filter(function (x) { return !sureOnly || x.sure; }).sort(function (a, b) { return b.risk - a.risk; }).slice(0, n).map(function (x) { return x.q; });
+  };
   Shyn.route("mistakes", function () {
     var view = document.getElementById("view");
     var all = collect(), list = filtered(all);
