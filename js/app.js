@@ -288,15 +288,15 @@
   Shyn.route("variants", function () {
     var sets = Shyn.allSets(), F = S.filter;
     var subjects = Shyn.SUBJECT_ORDER.filter(function (s) { return sets.some(function (x) { return x.subject === s; }); });
-    if (!F.subjects) F.subjects = subjects.filter(function (s) { return s !== "fundamentals"; });
-    if (!F.sources) F.sources = ["tc", "ai"];
+    if (!F.subjects) F.subjects = subjects.slice();
+    if (!F.sources) F.sources = ["tc", "ai", "col"];
     if (!F.langs) F.langs = ["kz", "en"];
     function okSet(s) { return F.subjects.indexOf(s.subject) >= 0 && F.sources.indexOf(s.source) >= 0 && F.langs.indexOf(s.origLang === "en" ? "en" : "kz") >= 0; }
     var list = Shyn.variants().map(function (v) { return { n: v.n, sets: v.sets.filter(okSet) }; }).filter(function (v) { return v.sets.length; });
 
     function chip(group, val, label, on) { return '<button class="chip' + (on ? " is-on" : "") + '" data-g="' + group + '" data-v="' + val + '" aria-pressed="' + on + '">' + label + '</button>'; }
     var rows = list.map(function (v) {
-      var src = v.sets.some(function (s) { return s.source === "tc"; }) ? "tc" : "ai";
+      var src = v.sets.some(function (s) { return s.source === "tc"; }) ? "tc" : v.sets.some(function (s) { return s.source === "col"; }) ? "col" : "ai";
       var parts = v.sets.map(function (s) {
         var best = Store.getBest(s.key), max = setMax(s), pct = best ? Math.round(best.got / best.max * 100) : 0;
         return '<button class="subj" data-set="' + s.key + '" title="' + esc(Shyn.SOURCE[s.source].hint) + '">' +
@@ -321,7 +321,7 @@
       '</div>' +
       '<div class="filters">' +
         '<div class="filters__g"><span class="filters__l">Пәндер</span>' + subjects.map(function (s) { return chip("subjects", s, Shyn.SUBJECT[s].short, F.subjects.indexOf(s) >= 0); }).join("") + '</div>' +
-        '<div class="filters__g"><span class="filters__l">Дереккөз</span>' + chip("sources", "tc", "Тест орталығы", F.sources.indexOf("tc") >= 0) + chip("sources", "ai", "Жаттығу", F.sources.indexOf("ai") >= 0) + '</div>' +
+        '<div class="filters__g"><span class="filters__l">Дереккөз</span>' + chip("sources", "tc", "Тест орталығы", F.sources.indexOf("tc") >= 0) + chip("sources", "ai", "Жаттығу", F.sources.indexOf("ai") >= 0) + chip("sources", "col", "Жинақ", F.sources.indexOf("col") >= 0) + '</div>' +
         '<div class="filters__g"><span class="filters__l">Сұрақ тілі</span>' + chip("langs", "kz", "Қазақша", F.langs.indexOf("kz") >= 0) + chip("langs", "en", "Ағылшынша", F.langs.indexOf("en") >= 0) + '</div>' +
       '</div>' +
       '<p class="count-line">Көрсетілді: ' + list.length + ' нұсқа</p>' +

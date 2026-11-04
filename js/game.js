@@ -44,6 +44,8 @@
     ["lab", "Зерттеуші", "Зертхананың 10 құралының бәрін аш", "Z", function () { return [Object.keys(G.labs).length, 10]; }],
     ["cards50", "Карточкашы", "50 карточканы белгіле", "К", function () { return [cnt("cards"), 50]; }],
     ["lesson5", "Ағылшынша бес сабақ", "Грамматика курсынан 5 сабақ өт", "En", function () { return [cnt("lesson"), 5]; }],
+    ["video1", "Бірінші сабақ", "Бір видеосабақты соңына дейін көр", "▶", function () { return [cnt("video"), 1]; }],
+    ["video20", "Киносүйер", "20 видеосабақты көр", "▶20", function () { return [cnt("video"), 20]; }],
     ["qotd7", "Күн сұрағы ×7", "7 күн сұрағына жауап бер", "?", function () { return [cnt("qotd"), 7]; }],
     ["chest1", "Алғашқы сандық", "Бір күннің барлық тапсырмасын орында", "★", function () { return [cnt("chests"), 1]; }],
     ["chest7", "Апта батыры", "7 күн барлық тапсырманы орында", "★7", function () { return [cnt("chests"), 7]; }],
@@ -72,7 +74,8 @@
     sql: [function () { return "Бір SQL тапсырмасын шеш"; }, [1], 30],
     lesson: [function () { return "Бір ағылшын сабағын өт"; }, [1], 25],
     test: [function () { return "Бір жиынтықты соңына дейін тапсыр"; }, [1], 40],
-    labtool: [function (n) { return "Зертханадағы " + n + " құралды аш"; }, [2], 20]
+    labtool: [function (n) { return "Зертханадағы " + n + " құралды аш"; }, [2], 20],
+    video: [function () { return "Бір видеосабақты соңына дейін көр"; }, [1], 30]
   };
   function rng(seed) { var x = 0; for (var i = 0; i < seed.length; i++) x = (x * 31 + seed.charCodeAt(i)) >>> 0; return function () { x = (x * 1664525 + 1013904223) >>> 0; return x / 4294967296; }; }
   function quests() {
