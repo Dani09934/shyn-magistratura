@@ -40,23 +40,48 @@
     if (/АЛГОРИТМ|ALGOR/.test(p)) return "algo";
     if (/\/БД|БД\/|ДЕРЕКТЕР|DATABASE|SQL|\bБД\b/.test(p)) return "db";
     if (/ТГО|СЫНИ|АНАЛИТИК|МАТЕМ/.test(p)) return "tgo";
+    if (/M094|М094|АҚПАРАТТЫҚ ТЕХ/.test(p)) return "it";
     if (/АҒЫЛШЫН|АНГЛ|ENGLISH|VOCABULARY|READING|LISTENING|ТЫҢДАЛЫМ|ОҚЫЛЫМ|ГРАММАТИК/.test(p)) return "eng";
     return "gen";
   }
-  var SUBJ = { algo: "Алгоритмдер", db: "Деректер қоры", tgo: "ТГО", eng: "Ағылшын тілі", gen: "Жалпы" };
+  var SUBJ = { algo: "Алгоритмдер", db: "Деректер қоры", it: "Алгоритм және ДҚ", tgo: "ТГО", eng: "Ағылшын тілі", gen: "Жалпы" };
 
-  /* ---------- Папканы сканерлеу ---------- */
+  /* ---------- Каталог және папканы сканерлеу ----------
+     Курс каталогы (data/media-catalog.js) сайтқа енгізілген: папка қосылмаса да барлық сабақ көрінеді.
+     Папка қосылғанда файлдар жолы бойынша каталогпен сәйкестендіріледі. */
+  var COURSE = "МАГИСТРАТУРАҒА ДАЙЫНДЫҚ";
+  function loadCatalog() {
+    if (Shyn.mediaCatalog) return Promise.resolve(Shyn.mediaCatalog);
+    return new Promise(function (res) {
+      var sc = document.createElement("script"); sc.src = "data/media-catalog.js";
+      sc.onload = function () { res(Shyn.mediaCatalog || null); }; sc.onerror = function () { res(null); };
+      document.head.appendChild(sc);
+    });
+  }
+  function catalogFiles(cat) {
+    var out = []; if (!cat) return out;
+    Object.keys(cat.d).forEach(function (dir) { cat.d[dir].forEach(function (n) { if (kind(n)) out.push({ path: dir + "/" + n, name: n, off: true }); }); });
+    return out;
+  }
+  // Таңдалған папка қай деңгейде болса да, жолды курс түбіріне келтіреміз
+  function normPath(rootName, path, tops) {
+    var i = path.indexOf(COURSE + "/");
+    if (i === 0) return path.slice(COURSE.length + 1);
+    if (rootName === COURSE) return path;
+    if (tops[rootName]) return rootName + "/" + path; // курстың ішкі папкасы таңдалды
+    return path;
+  }
   async function scanHandle(dir) {
     var files = [];
     async function walk(h, path, depth) {
-      if (depth > 7) return;
+      if (depth > 8) return;
       for await (var entry of h.values()) {
         if (entry.kind === "directory") { if (!/^\.|^__MACOSX$/.test(entry.name)) await walk(entry, path ? path + "/" + entry.name : entry.name, depth + 1); }
         else if (kind(entry.name)) files.push({ path: path ? path + "/" + entry.name : entry.name, name: entry.name, h: entry });
       }
     }
     await walk(dir, "", 0);
-    return build(dir.name, files);
+    return merge(dir.name, files);
   }
   function scanList(fileList) {
     var files = [], root = "";
@@ -65,32 +90,40 @@
       if (!root) root = parts.length > 1 ? parts[0] : "Папка";
       if (kind(f.name)) files.push({ path: parts.slice(1).join("/") || f.name, name: f.name, f: f });
     });
-    return build(root, files);
+    return merge(root, files);
+  }
+  function merge(rootName, found) {
+    var cat = Shyn.mediaCatalog, base = catalogFiles(cat), tops = {}, byPath = {};
+    base.forEach(function (x) { tops[x.path.split("/")[0]] = 1; byPath[x.path] = x; });
+    var linked = 0;
+    found.forEach(function (x) {
+      x.path = normPath(rootName, x.path, tops);
+      var b = byPath[x.path];
+      if (b) { b.h = x.h; b.f = x.f; b.off = false; linked++; }
+      else { x.off = false; base.push(x); byPath[x.path] = x; }
+    });
+    var lib = build(COURSE, base);
+    lib.connected = rootName; lib.found = found.length; lib.linked = linked;
+    return lib;
   }
   function build(rootName, files) {
-    // Сабақ = файлдар тұрған папка. Каталог = бірінші деңгейдегі папка (немесе файл түбірде болса — түбір атауы).
+    // Сабақ = файлдар тұрған папка; «ТЕСТ …» ішкі папкасы өз сабағына қосылады. Каталог = бірінші деңгейдегі папка.
     var lessons = {};
     files.forEach(function (x) {
-      var parts = x.path.split("/"), dir = parts.slice(0, -1).join("/");
-      var L = lessons[dir] || (lessons[dir] = { id: dir || "_root", dir: dir, parts: parts.slice(0, -1), items: [] });
+      var parts = x.path.split("/").slice(0, -1);
+      if (parts.length > 1 && /^ТЕСТ(\s|$)/i.test(parts[parts.length - 1])) { parts = parts.slice(0, -1); x.test = true; }
+      var dir = parts.join("/");
+      var L = lessons[dir] || (lessons[dir] = { id: dir || "_root", dir: dir, parts: parts, items: [] });
       x.kind = kind(x.name); L.items.push(x);
     });
     var list = Object.keys(lessons).map(function (k) { return lessons[k]; });
-    // Егер түбірде бір ғана ортақ қалта болса (мысалы «МАГИСТРАТУРАҒА ДАЙЫНДЫҚ»), каталогтарды одан бір деңгей төмен аламыз
-    // Ірі курс папкасы (ішінде ≥3 бөлімі бар және видеосы бар) бөлімдерге бөлінеді: әр бөлім — жеке каталог
-    var kids = {}, hasV = {};
     list.forEach(function (L) {
-      var t = L.parts[0] || ""; if (L.parts.length >= 2) (kids[t] = kids[t] || {})[L.parts[1]] = 1;
-      if (L.items.some(function (i) { return i.kind === "video"; })) hasV[t] = 1;
-    });
-    list.forEach(function (L) {
-      var t = L.parts[0], split = t && hasV[t] && kids[t] && Object.keys(kids[t]).length >= 3 && L.parts.length >= 2;
-      var shift = split ? 1 : 0;
-      L.cat = !t ? rootName : split ? t + "/" + L.parts[1] : t;
-      L.sub = L.parts.slice(shift + 1);
+      var t = L.parts[0];
+      L.cat = t || rootName;
+      L.sub = L.parts.slice(1);
       L.title = L.sub.length ? clean(L.sub[L.sub.length - 1]) : clean(L.cat);
       L.group = L.sub.length > 1 ? clean(L.sub[0]) : "";
-      L.items.sort(function (a, b) { var o = { video: 0, audio: 1, pdf: 2, doc: 3, img: 4 }; return o[a.kind] - o[b.kind] || natCmp(a.name, b.name); });
+      L.items.sort(function (a, b) { var o = { video: 0, audio: 1, pdf: 2, doc: 3, img: 4 }; return o[a.kind] - o[b.kind] || (a.test ? 1 : 0) - (b.test ? 1 : 0) || natCmp(a.name, b.name); });
       L.videos = L.items.filter(function (i) { return i.kind === "video" || i.kind === "audio"; });
       L.subj = subjOf(L.dir);
     });
@@ -101,16 +134,25 @@
     });
     var cats = [], cmap = {};
     list.forEach(function (L) {
-      var c = cmap[L.cat] || (cmap[L.cat] = { id: L.cat, name: clean(L.cat.split("/").pop()), from: L.cat.indexOf("/") > 0 ? clean(L.cat.split("/")[0]) : "", lessons: [], subj: subjOf(L.cat) });
+      var c = cmap[L.cat] || (cmap[L.cat] = { id: L.cat, name: clean(L.cat), from: "", lessons: [], subj: subjOf(L.cat) });
       if (!c.lessons.length) cats.push(c);
       c.lessons.push(L);
     });
     var hasVid = function (c) { return c.lessons.some(function (L) { return L.videos.length; }) ? 0 : 1; };
-    cats.sort(function (a, b) { var x = a.id.split("/"), y = b.id.split("/"); return hasVid(a) - hasVid(b) || natCmp(x[0], y[0]) || natCmp(x[1] || "", y[1] || ""); });
+    cats.sort(function (a, b) { return hasVid(a) - hasVid(b) || natCmp(a.id, b.id); });
     return { root: rootName, lessons: list, cats: cats, files: files.length };
   }
+  function vname(v) { var n = clean(v.name); return v.test ? (/^(тест|тапсырма|nn|с)$/i.test(n) ? "Тест талдауы" : "Тест талдауы: " + n) : n; }
   async function fileOf(item) { return item.f || item.h.getFile(); }
-  function key(item) { return (LIB ? LIB.root : "") + "/" + item.path; }
+  function key(item) { return "c/" + item.path; }
+  // Ескі прогресс кілттері («папка/жол») жаңа түрге көшіріледі
+  if (!P.v) {
+    var W = {}, POS = {};
+    Object.keys(P.w).forEach(function (k) { W[mig(k)] = P.w[k]; });
+    Object.keys(P.pos).forEach(function (k) { POS[mig(k)] = P.pos[k]; });
+    P.w = W; P.pos = POS; P.v = 2; save();
+  }
+  function mig(k) { var p = k.split("/").slice(1).join("/"); var i = p.indexOf("МАГИСТРАТУРАҒА ДАЙЫНДЫҚ/"); return "c/" + (i === 0 ? p.slice(24) : p); }
 
   /* ---------- Прогресс ---------- */
   function stat(lessons) {
@@ -125,8 +167,14 @@
   }
 
   /* ---------- Беттер ---------- */
-  Shyn.route("media", function (args) {
-    if (!LIB) return drawPick();
+  Shyn.route("media", async function (args) {
+    if (!LIB) {
+      view.innerHTML = head("Каталог жүктелуде…");
+      await loadCatalog();
+      try { var h = await loadHandle(); if (h && h.queryPermission && (await h.queryPermission({ mode: "read" })) === "granted") LIB = await scanHandle(h); } catch (e) {}
+      if (!LIB) LIB = merge("", []);
+      if (Shyn._route !== "media") return;
+    }
     var c = args[0] ? decodeURIComponent(args[0]) : null;
     var l = args[1] ? decodeURIComponent(args[1]) : null;
     if (c && l) return drawLesson(c, l, args[2] ? +args[2] : 0);
@@ -137,36 +185,44 @@
   function head(sub) {
     return '<header class="page-head"><h1>Видеосабақтар</h1><p class="muted">' + sub + '</p></header>';
   }
-  async function drawPick() {
-    var h = await loadHandle();
-    view.innerHTML = head("Курстың видеолары, слайдтары мен PDF-тері сіздің компьютеріңізден ашылады — ешқайда жүктелмейді, интернетсіз де жұмыс істейді.") +
-      '<section class="mpick">' +
-        '<div class="mpick__t"><h2>Папканы қосыңыз</h2><ol><li>Төмендегі батырманы басыңыз.</li><li><b>МАГИСТРАТУРА</b> папкасын (немесе ішіндегі «МАГИСТРАТУРАҒА ДАЙЫНДЫҚ» папкасын) таңдаңыз.</li><li>Сайт видеоларды каталогтар мен тақырыптарға бөліп береді, қай сабақты көргеніңізді есте сақтайды.</li></ol>' +
-        '<div class="labform__btns">' +
-          (h && supportsPicker ? '<button class="btn btn--gold btn--big" id="mReopen">«' + esc(h.name) + '» папкасын қайта ашу</button>' : "") +
-          (supportsPicker ? '<button class="btn ' + (h ? "btn--line" : "btn--gold btn--big") + '" id="mPick">Папканы таңдау</button>' : "") +
-          '<label class="btn btn--line" for="mDir">' + (supportsPicker ? "Басқа тәсіл" : "Папканы таңдау") + '</label><input type="file" id="mDir" webkitdirectory directory multiple hidden>' +
-        '</div><p class="muted small" id="mMsg">' + (supportsPicker ? "Chrome, Edge немесе Яндекс браузерінде папка бір рет таңдалса, келесіде бір батырмамен ашылады." : "Бұл браузерде папканы әр жолы қайта таңдау керек. Ыңғайлы болу үшін компьютерде Chrome не Edge қолданыңыз.") + '</p></div>' +
-        '<div class="mpick__ill" aria-hidden="true"><span></span><span></span><span></span></div></section>';
-    var msg = function (t) { var m = U.$("#mMsg"); if (m) m.textContent = t; };
-    var b1 = U.$("#mPick"), b2 = U.$("#mReopen");
-    if (b1) b1.addEventListener("click", async function () {
-      try { var d = await global.showDirectoryPicker({ id: "shyn-media", mode: "read" }); msg("Папка оқылуда…"); LIB = await scanHandle(d); saveHandle(d); after(); }
-      catch (e) { if (e.name !== "AbortError") msg("Папканы ашу мүмкін болмады: " + e.message); }
-    });
-    if (b2) b2.addEventListener("click", async function () {
+  /* Папканы қосу блогы: басты бетте және ашылмаған видеоның орнында көрсетіледі */
+  function connectBox(compact) {
+    return '<section class="mpick' + (compact ? " mpick--c" : "") + '"><div class="mpick__t">' +
+      '<h2>' + (compact ? "Бұл видео компьютеріңіздегі папкада" : "Видеоларды ашу үшін папканы қосыңыз") + '</h2>' +
+      (compact ? "" : '<p class="muted">Курс видеолары (10 ГБ-тан астам) интернетке жүктелмейді: олар сіздің компьютеріңізден ойнатылады. Каталог пен прогресс сайтта тұрады.</p>') +
+      '<ol><li>Батырманы басыңыз.</li><li>Жұмыс үстеліндегі <b>МАГИСТРАТУРА</b> папкасын (немесе ішіндегі «МАГИСТРАТУРАҒА ДАЙЫНДЫҚ») таңдаңыз.</li><li>Браузер сұраса, «Көруге рұқсат беру» басыңыз.</li></ol>' +
+      '<div class="labform__btns">' +
+        (supportsPicker ? '<button class="btn btn--gold" data-mc="reopen" hidden></button><button class="btn btn--gold" data-mc="pick">Папканы таңдау</button>' : "") +
+        '<label class="btn btn--line">' + (supportsPicker ? "Басқа тәсіл" : "Папканы таңдау") + '<input type="file" data-mc="dir" webkitdirectory directory multiple hidden></label>' +
+      '</div><p class="muted small" data-mc="msg">' + (supportsPicker ? "Chrome, Edge не Яндекс браузерінде папка бір рет таңдалады, келесіде өздігінен ашылады." :
+        "Бұл браузерде папканы әр жолы қайта таңдау керек. Телефонда видеолар ашылмауы мүмкін — компьютерде Chrome не Edge қолданыңыз.") + '</p></div>' +
+      (compact ? "" : '<div class="mpick__ill" aria-hidden="true"><span></span><span></span><span></span></div>') + '</section>';
+  }
+  async function bindConnect(root) {
+    var msg = function (t) { var m = root.querySelector('[data-mc="msg"]'); if (m) m.textContent = t; };
+    var done = function (lib) {
+      if (!lib.linked && !lib.found) { msg("Бұл папкада видео не құжат табылмады. МАГИСТРАТУРА папкасын таңдаңыз."); return; }
+      LIB = lib;
+      U.toast(lib.linked ? lib.linked + " файл курс каталогымен байланысты" : lib.found + " файл табылды");
+      Shyn._keepScroll = true; Shyn.render();
+    };
+    var h = await loadHandle(), re = root.querySelector('[data-mc="reopen"]');
+    if (h && re) { re.hidden = false; re.textContent = "«" + h.name + "» папкасын ашу"; var pk = root.querySelector('[data-mc="pick"]'); if (pk) { pk.classList.remove("btn--gold"); pk.classList.add("btn--line"); pk.textContent = "Басқа папка"; } }
+    if (re) re.addEventListener("click", async function () {
       try {
         var ok = (await h.queryPermission({ mode: "read" })) === "granted" || (await h.requestPermission({ mode: "read" })) === "granted";
-        if (!ok) return msg("Рұқсат берілмеді. «Папканы таңдау» батырмасын басыңыз.");
-        msg("Папка оқылуда…"); LIB = await scanHandle(h); after();
-      } catch (e) { msg("Папка табылмады — оны көшірген не өшірген болуыңыз мүмкін. Қайта таңдаңыз."); }
+        if (!ok) return msg("Рұқсат берілмеді. «Басқа папка» батырмасымен қайта таңдаңыз.");
+        msg("Папка оқылуда…"); done(await scanHandle(h));
+      } catch (e) { msg("Папка табылмады: оны көшірген не өшірген болуыңыз мүмкін. Қайта таңдаңыз."); }
     });
-    U.$("#mDir").addEventListener("change", function () { if (!this.files.length) return; msg("Папка оқылуда…"); LIB = scanList(this.files); after(); });
-  }
-  function after() {
-    if (!LIB.files) { LIB = null; U.toast("Бұл папкада видео немесе құжат табылмады"); return; }
-    U.toast(LIB.files + " файл табылды");
-    Shyn.go("#/media");
+    var pick = root.querySelector('[data-mc="pick"]');
+    if (pick) pick.addEventListener("click", async function () {
+      try { var d = await global.showDirectoryPicker({ id: "shyn-media", mode: "read" }); msg("Папка оқылуда… (бірнеше секунд)"); var lib = await scanHandle(d); saveHandle(d); done(lib); }
+      catch (e) { if (e.name !== "AbortError") msg("Папканы ашу мүмкін болмады: " + e.message); }
+    });
+    var inp = root.querySelector('[data-mc="dir"]');
+    inp.addEventListener("change", function () { if (!this.files.length) return; msg("Папка оқылуда…"); done(scanList(this.files)); });
+    Shyn._mediaFiles = function (list) { done(scanList(list)); }; // тест үшін: File тізімін тікелей беру
   }
   function catCard(c) {
     var s = stat(c.lessons), docs = c.lessons.reduce(function (n, L) { return n + L.items.length - L.videos.length; }, 0);
@@ -176,18 +232,20 @@
   }
   function drawHome() {
     var s = stat(LIB.lessons), last = P.last && LIB.lessons.filter(function (L) { return L.id === P.last.l; })[0];
-    var f = { all: "Барлығы", algo: SUBJ.algo, db: SUBJ.db, tgo: SUBJ.tgo, eng: SUBJ.eng, gen: SUBJ.gen };
+    var f = { all: "Барлығы", tgo: SUBJ.tgo, eng: SUBJ.eng, it: SUBJ.it, gen: SUBJ.gen };
     var sf = CUR.f || "all";
-    view.innerHTML = head("«" + esc(LIB.root) + "» папкасы · " + LIB.cats.length + " каталог · " + LIB.lessons.length + " тақырып · " + s.t + " видео/аудио") +
+    view.innerHTML = head(LIB.cats.length + " каталог · " + LIB.lessons.length + " тақырып · " + s.t + " видео/аудио" + (LIB.connected ? " · «" + esc(LIB.connected) + "» папкасы қосылған" : "")) +
+      (LIB.connected ? "" : connectBox(false)) +
       '<section class="mtop"><div class="mtop__p"><span class="gbar"><i style="width:' + s.pct + '%"></i></span><small>Жалпы прогресс: <b>' + s.w + '</b> / ' + s.t + ' (' + s.pct + '%)</small></div>' +
         (last ? '<a class="btn btn--gold" href="#/media/' + encodeURIComponent(last.cat) + '/' + encodeURIComponent(last.id) + '/' + (P.last.i || 0) + '">Жалғастыру: ' + esc(last.title) + '</a>' : "") +
-        '<button class="btn btn--ghost" id="mChange">Басқа папка</button></section>' +
+        (LIB.connected ? '<button class="btn btn--ghost" id="mChange">Басқа папка</button>' : "") + '</section>' +
       '<div class="seg seg--wrap" role="group">' + Object.keys(f).map(function (k) { return '<button data-mf="' + k + '" class="' + (sf === k ? "is-on" : "") + '">' + f[k] + '</button>'; }).join("") + '</div>' +
       '<input class="field msearch" id="mQ" type="search" placeholder="Тақырыпты іздеу: Дейкстра, Present Perfect, пайыз…">' +
       '<div id="mRes"></div>' +
-      '<section class="mcats" id="mCats">' + LIB.cats.filter(function (c) { return sf === "all" || c.subj === sf || c.lessons.some(function (L) { return L.subj === sf; }); }).map(catCard).join("") + '</section>';
+      '<section class="mcats" id="mCats">' + LIB.cats.filter(function (c) { return sf === "all" || c.subj === sf || (sf === "it" && /algo|db/.test(c.subj)) || c.lessons.some(function (L) { return L.subj === sf || (sf === "it" && /algo|db/.test(L.subj)); }); }).map(catCard).join("") + '</section>';
     U.on("[data-mf]", "click", function (e, el) { CUR.f = el.getAttribute("data-mf"); drawHome(); }, view);
-    U.$("#mChange").addEventListener("click", function () { LIB = null; drawPick(); });
+    var ch = U.$("#mChange"); if (ch) ch.addEventListener("click", function () { LIB = merge("", []); drawHome(); });
+    if (!LIB.connected) bindConnect(view.querySelector(".mpick"));
     U.$("#mQ").addEventListener("input", function () {
       var q = this.value.trim().toLowerCase(), box = U.$("#mRes");
       if (q.length < 2) { box.innerHTML = ""; U.$("#mCats").hidden = false; return; }
@@ -225,18 +283,19 @@
     view.innerHTML = '<p class="crumbs"><a href="#/media">Видеосабақтар</a> / <a href="#/media/' + encodeURIComponent(c.id) + '">' + esc(c.name) + '</a>' + (L.group ? ' / ' + esc(L.group) : "") + '</p>' +
       '<header class="page-head"><h1>' + esc(L.title) + '</h1></header>' +
       '<div class="mlesson"><div class="mlesson__main">' +
-        (cur ? '<div class="mplayer"><' + (cur.kind === "video" ? "video" : "audio") + ' id="mPlay" controls preload="metadata" playsinline></' + (cur.kind === "video" ? "video" : "audio") + '></div>' +
-          '<div class="mctl"><span class="mctl__t">' + esc(clean(cur.name)) + '</span><span class="sp"></span>' +
+        (cur && cur.off ? connectBox(true) : cur ? '<div class="mplayer"><' + (cur.kind === "video" ? "video" : "audio") + ' id="mPlay" controls preload="metadata" playsinline></' + (cur.kind === "video" ? "video" : "audio") + '></div>' +
+          '<div class="mctl"><span class="mctl__t">' + esc(vname(cur)) + '</span><span class="sp"></span>' +
           [1, 1.25, 1.5, 1.75, 2].map(function (r) { return '<button class="chip" data-rate="' + r + '">' + r + '×</button>'; }).join("") +
           '<label class="check"><input type="checkbox" id="mDone"' + (P.w[key(cur)] ? " checked" : "") + '> Көрдім</label></div>' : '<p class="labnote">Бұл тақырыпта видео жоқ — төмендегі материалдарды қараңыз.</p>') +
         '<div id="mDocs"></div></div>' +
         '<aside class="mlesson__side">' +
-          (V.length > 1 ? '<h2>Осы тақырыптың видеолары</h2><ol class="mvlist">' + V.map(function (v, i) { return '<li class="' + (i === idx ? "is-on" : "") + (P.w[key(v)] ? " is-done" : "") + '"><a href="#/media/' + encodeURIComponent(c.id) + '/' + encodeURIComponent(L.id) + '/' + i + '">' + esc(clean(v.name)) + '</a></li>'; }).join("") + '</ol>' : "") +
+          (V.length > 1 ? '<h2>Осы тақырыптың видеолары</h2><ol class="mvlist">' + V.map(function (v, i) { return '<li class="' + (i === idx ? "is-on" : "") + (P.w[key(v)] ? " is-done" : "") + '"><a href="#/media/' + encodeURIComponent(c.id) + '/' + encodeURIComponent(L.id) + '/' + i + '">' + esc(vname(v)) + '</a></li>'; }).join("") + '</ol>' : "") +
           (others.length ? '<h2>Материалдар</h2><ul class="mdocs">' + others.map(function (o, i) { return '<li><button class="linkbtn" data-doc="' + i + '"><i class="mi">' + (o.kind === "pdf" ? "PDF" : o.kind === "img" ? "Сурет" : o.name.split(".").pop().toUpperCase()) + '</i> ' + esc(clean(o.name)) + '</button></li>'; }).join("") + '</ul>' : "") +
           '<div class="mnav">' + (prev ? '<a class="btn btn--line" href="#/media/' + encodeURIComponent(c.id) + '/' + encodeURIComponent(prev.id) + '">← ' + esc(prev.title) + '</a>' : "") +
           (next ? '<a class="btn btn--gold" href="#/media/' + encodeURIComponent(c.id) + '/' + encodeURIComponent(next.id) + '">' + esc(next.title) + ' →</a>' : "") + '</div>' +
         '</aside></div>';
-    if (cur) {
+    if (cur && cur.off) bindConnect(view.querySelector(".mpick"));
+    else if (cur) {
       var el = U.$("#mPlay"), f = await fileOf(cur), u = URL.createObjectURL(f); urls.push(u); el.src = u;
       var k = key(cur), rate = +(P.rate || 1);
       el.addEventListener("loadedmetadata", function () { if (P.pos[k] && P.pos[k] < el.duration - 5) el.currentTime = P.pos[k]; el.playbackRate = rate; });
@@ -255,7 +314,9 @@
       U.$("#mDone").addEventListener("change", function () { if (this.checked) markWatched(cur); else { delete P.w[k]; save(); } });
     }
     U.on("[data-doc]", "click", async function (e, b) {
-      var o = others[+b.getAttribute("data-doc")], f = await fileOf(o), u = URL.createObjectURL(f); urls.push(u);
+      var o = others[+b.getAttribute("data-doc")];
+      if (o.off) { U.toast("Материалды ашу үшін алдымен папканы қосыңыз"); var mp = view.querySelector(".mpick"); if (mp) mp.scrollIntoView({ block: "center" }); else { U.$("#mDocs").innerHTML = connectBox(true); bindConnect(U.$("#mDocs").querySelector(".mpick")); } return; }
+      var f = await fileOf(o), u = URL.createObjectURL(f); urls.push(u);
       var box = U.$("#mDocs");
       if (o.kind === "pdf") box.innerHTML = '<div class="mdocv"><div class="mdocv__h"><b>' + esc(clean(o.name)) + '</b><a class="btn btn--line" href="' + u + '" target="_blank" rel="noopener">Жаңа бетте ашу</a></div><iframe src="' + u + '" title="' + esc(o.name) + '"></iframe></div>';
       else if (o.kind === "img") box.innerHTML = '<div class="mdocv"><div class="mdocv__h"><b>' + esc(clean(o.name)) + '</b></div><img src="' + u + '" alt="' + esc(clean(o.name)) + '"></div>';

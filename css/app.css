@@ -1333,3 +1333,6 @@ kbd { font-family: var(--mono); font-size: .72em; opacity: .75; margin-left: 4px
   .stage > p.muted { margin: 6px 0; }
   .flash { height: 300px; }
 }
+.mpick--c { grid-template-columns: 1fr; aspect-ratio: auto; border-left: 4px solid var(--gold); margin-bottom: 14px; }
+.mpick--c h2 { margin-top: 0; }
+.mpick { margin-bottom: 18px; }
