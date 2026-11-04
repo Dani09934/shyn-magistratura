@@ -1227,3 +1227,18 @@ kbd { font-family: var(--mono); font-size: .72em; opacity: .75; margin-left: 4px
   .gpop { min-width: 0; max-width: none; transform: translateY(-16px); }
   .gpop.is-in { transform: none; }
 }
+
+/* Зертхана: екі топқа бөлінген құралдар */
+.labnav { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 22px; }
+.labnav__g { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.labnav__g > span { flex: none; width: 112px; font-size: .8rem; color: var(--soft); font-weight: 600; }
+.labnav__g > div { display: flex; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.labnav__g--a .labnav__a { border-left: 3px solid var(--kok); }
+.labnav__g--d .labnav__a { border-left: 3px solid var(--gold); }
+@media (max-width: 760px) {
+  .labnav { margin-left: 0; margin-right: 0; padding: 0; overflow: visible; flex-wrap: nowrap; }
+  .labnav__g { flex-direction: column; align-items: stretch; gap: 4px; }
+  .labnav__g > span { width: auto; }
+  .labnav__g > div { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; }
+  .labnav__g > div::-webkit-scrollbar { display: none; }
+}

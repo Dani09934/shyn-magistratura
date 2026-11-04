@@ -95,6 +95,8 @@ EX = {
 'v59-english-31': 'By the time + өткен оқиға → Past Perfect: had died. B.',
 }
 FIX = {
+ 'v47-english-16': {'opts': [['A', 'to call/found'], ['B', 'to call/find'], ['C', 'call/to find'], ['D', 'call/find']], 'correct': 'B'},
+ 'v52-english-22': {'opts': [['A', 'to go'], ['B', 'going'], ['C', 'go'], ['D', 'went']], 'correct': 'A'},
  'v55-english-25': {'correct': 'C'},
  'v55-english-26': {'q': 'How do we write «80th floor» in words?', 'opts': [['A', 'eightienth'], ['B', 'eightith'], ['C', 'eightieth'], ['D', 'eightyth']], 'correct': 'C'},
  'v56-english-16': {'q': '___ by all his friends, he decided to become a monk.'},

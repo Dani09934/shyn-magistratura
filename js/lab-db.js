@@ -319,7 +319,7 @@
   /* ================= Шпаргалка ================= */
   LAB.pages.cheat = function () {
     var T = function (head, rows) { return '<div class="tablewrap"><table class="ltab"><thead><tr>' + head.map(function (h) { return '<th>' + h + '</th>'; }).join("") + '</tr></thead><tbody>' + rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody></table></div>'; };
-    view.innerHTML = LAB.head("Шпаргалка", "Емтихан алдында қарап шығатын ең жиі сұралатын анықтамалар.", "cheat") +
+    view.innerHTML = LAB.head("Анықтамалық кестелер", "Күрделілік, SQL реті, ACID, оқшаулау деңгейлері, қалыпты формалар — бір бетте.", "cheat") +
       '<div class="cheat">' +
       '<section class="block"><h2>Сұрыптау күрделілігі</h2>' + T(["Алгоритм", "Ең жақсы", "Орташа", "Ең нашар", "Жад", "Тұрақты"], [
         ["Bubble", "O(n)", "O(n²)", "O(n²)", "O(1)", "иә"], ["Selection", "O(n²)", "O(n²)", "O(n²)", "O(1)", "жоқ"], ["Insertion", "O(n)", "O(n²)", "O(n²)", "O(1)", "иә"],

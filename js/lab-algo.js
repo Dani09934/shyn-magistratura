@@ -7,15 +7,17 @@
 
   LAB.tabs = [
     ["", "Шолу", ""], ["sort", "Сұрыптау", "a"], ["search", "Екілік іздеу", "a"], ["ds", "Стек · кезек", "a"], ["hash", "Хеш-кесте", "a"],
-    ["tree", "Ағаштар", "a"], ["graph", "Графтар", "a"], ["sql", "SQL құмсалғыш", "d"], ["join", "JOIN түрлері", "d"], ["nf", "Нормализация", "d"], ["cheat", "Шпаргалка", "d"]
+    ["tree", "Ағаштар", "a"], ["graph", "Графтар", "a"], ["sql", "SQL құмсалғыш", "d"], ["join", "JOIN түрлері", "d"], ["nf", "Нормализация", "d"], ["cheat", "Кестелер", "d"]
   ];
   LAB.nav = function (active) {
-    return '<nav class="labnav" aria-label="Зертхана бөлімдері">' + LAB.tabs.map(function (t) {
-      return '<a href="#/lab' + (t[0] ? "/" + t[0] : "") + '" class="labnav__a labnav__a--' + (t[2] || "o") + (active === t[0] ? " is-on" : "") + '">' + t[1] + '</a>';
-    }).join("") + '</nav>';
+    var g = function (k, label) {
+      return '<div class="labnav__g labnav__g--' + k + '"><span>' + label + '</span><div>' + LAB.tabs.filter(function (t) { return t[2] === k; }).map(function (t) {
+        return '<a href="#/lab/' + t[0] + '" class="labnav__a' + (active === t[0] ? " is-on" : "") + '">' + t[1] + '</a>'; }).join("") + '</div></div>';
+    };
+    return '<nav class="labnav" aria-label="Зертхана құралдары">' + g("a", "Алгоритмдер") + g("d", "Деректер қоры") + '</nav>';
   };
   LAB.head = function (title, lead, active) {
-    return '<header class="page-head"><h1>' + title + '</h1><p class="muted">' + lead + '</p></header>' + LAB.nav(active);
+    return '<header class="page-head"><h1>' + title + '</h1><p class="muted">' + lead + '</p></header>' + (active ? LAB.nav(active) : "");
   };
   function nums(str, max) {
     var a = String(str).split(/[\s,;]+/).map(function (x) { return x.trim(); }).filter(Boolean).map(Number).filter(function (x) { return isFinite(x); });
@@ -42,7 +44,7 @@
       ["sql", "d", "SQL құмсалғыш", "Браузердің ішіндегі нақты дерекқор: сұранысты жазып, нәтижесін бірден көріңіз. 20 тапсырма тексерісімен."],
       ["join", "d", "JOIN түрлері", "INNER, LEFT, RIGHT, FULL, CROSS — екі кестеде қай жолдар қалатынын көзбен көріңіз."],
       ["nf", "d", "Нормализация калькуляторы", "Функционалдық тәуелділіктерден атрибуттар тұйықталуын, кандидат кілттерді және 2ҚФ / 3ҚФ / BCNF тексерісін есептейді."],
-      ["cheat", "d", "Шпаргалка", "Емтихан алдында қарап шығатын қысқа анықтамалар: күрделілік, SQL реті, ACID, оқшаулау деңгейлері, қалыпты формалар."]
+      ["cheat", "d", "Анықтамалық кестелер", "Емтихан алдында қарап шығатын қысқа анықтамалар: күрделілік, SQL реті, ACID, оқшаулау деңгейлері, қалыпты формалар."]
     ];
     view.innerHTML = LAB.head("Зертхана", "Теорияны түсіну үшін интерактивті құралдар: алгоритмді қадам бойынша орындап, SQL сұранысын нақты дерекқорда тексеріп, қалыпты форманы есептеп көріңіз.", "") +
       '<section class="labgrid">' + cards.map(function (c) {

@@ -196,7 +196,7 @@
   }
 
   /* ---------- Күн сұрағы ---------- */
-  function simpleQ(q) { return !q.missing && !q.multi && !q.passage && !q.audio && !q.code && q.q.length < 220 && q.opts.every(function (o) { return o.t.length < 90; }); }
+  function simpleQ(q) { return !q.missing && !q.multi && !q.passage && !q.audio && !q.code && q.q.length < 220 && q.opts.every(function (o) { return o.t && o.t.trim() && !o.code && o.t.length < 90; }); }
   var pool;
   function blitzPool() { if (!pool) pool = Shyn.allQuestions().filter(simpleQ); return pool; }
   function qotd() {
