@@ -226,12 +226,14 @@
           '<ul>' + Q.list.map(function (x) {
             return '<li class="' + (x.done ? "is-done" : "") + '"><span class="gchk" aria-hidden="true"></span><span class="gq__t">' + esc(qTitle(x)) + (x.goal > 1 && !x.done ? ' <small>' + x.prog + '/' + x.goal + '</small>' : "") + '</span><span class="gq__xp">+' + x.xp + '</span></li>';
           }).join("") + '</ul><p class="gchest' + (Q.chest ? " is-open" : "") + '">' + (Q.chest ? "★ Сандық ашылды: +100 XP" : "Бәрін орындасаң — сандық: +100 XP") + '</p></div>' +
-      '</section>' +
-      '<section class="gtwo">' +
-        (q ? '<div class="gqotd" id="qotd"><div class="gqotd__h"><b>Күн сұрағы</b><span>' + esc(Shyn.SUBJECT[q._subject].short) + ' · ' + esc(q.topic || "") + '</span></div><p class="gqotd__q">' + Shyn.fmt(q.q) + '</p>' +
+      '</section>';
+    },
+    qotdHTML: function () {
+      var q = qotd(), qd = G.qotd[today()]; if (!q) return "";
+      return '<section class="block">' +
+        (true ? '<div class="gqotd" id="qotd"><div class="gqotd__h"><b>Күн сұрағы</b><span>' + esc(Shyn.SUBJECT[q._subject].short) + ' · ' + esc(q.topic || "") + '</span></div><p class="gqotd__q">' + Shyn.fmt(q.q) + '</p>' +
           '<div class="gqotd__o">' + q.opts.map(function (o) { var cls = qd ? (q.correct.indexOf(o.l) >= 0 ? " is-ok" : qd.sel === o.l ? " is-no" : "") : ""; return '<button class="gopt' + cls + '" data-qo="' + o.l + '"' + (qd ? " disabled" : "") + '><b>' + o.l + '</b>' + Shyn.fmt(o.t) + '</button>'; }).join("") + '</div>' +
-          '<div id="qotdEx">' + (qd ? exHTML(q, qd.ok) : '<p class="muted small">Бір рет жауап беруге болады · дұрыс болса +20 XP</p>') + '</div></div>' : "") +
-        '<a class="gblitz" href="#/blitz"><span class="gblitz__k">60 секунд</span><b>Блиц</b><span>Жылдам жауап бер, комбо жина, рекордыңды жаң.</span><span class="gblitz__best">Рекорд: <b>' + G.blitzBest + '</b></span><span class="btn btn--gold">Ойнау</span></a>' +
+          '<div id="qotdEx">' + (qd ? exHTML(q, qd.ok) : '<p class="muted small">Бір рет жауап беруге болады · дұрыс болса +20 XP</p>') + '</div></div>' : "")  +
       '</section>';
     },
     bindHome: function () {

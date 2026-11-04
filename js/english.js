@@ -57,7 +57,8 @@
       return '<span class="implegend__i"><span class="dot dot--' + k + '"></span><b>' + IMP[k].name + '</b><small>' + IMP[k].hint + '</small></span>';
     }).join("") + '</div>';
   }
-  function engNav(active) {
+  function engNav(active) { return ""; }
+  function engNavOld(active) {
     var tabs = [["", "Оқу жолы"], ["review", "Қайталау"], ["table", "12 шақ"], ["build", "Құрастырғыш"], ["pron", "Есімдіктер"], ["verbs", "Етістіктер"], ["game", "Ойын"]];
     return '<nav class="engnav" aria-label="Курс бөлімдері">' + tabs.map(function (t) {
       return '<a href="#/eng' + (t[0] ? "/" + t[0] : "") + '" class="' + (active === t[0] ? "is-on" : "") + '">' + t[1] + '</a>';
@@ -80,6 +81,7 @@
     if (sub === "build") return buildPage();
     if (sub === "pron") return pronPage();
     if (sub === "verbs") return verbsPage();
+    if (sub === "intensive" && Shyn.engIntensive) return Shyn.engIntensive();
     pathPage();
   });
 
@@ -506,7 +508,7 @@
         if (!f) return '<article class="bcard bcard--' + tp.imp + ' is-na"><h3>' + t[1] + '</h3><p class="muted">' + (B.passive ? "Ырықсыз етісте" : "be етістігімен") + ' бұл шақ іс жүзінде қолданылмайды.</p></article>';
         return '<article class="bcard bcard--' + tp.imp + '"><header><h3>' + t[1] + '</h3><a class="link" href="#/eng/t/' + t[2] + '">ереже</a></header>' +
           '<p class="bfx">' + esc(B.passive ? "be (" + t[1] + ") + V3" : tp.form["+"]) + '</p>' +
-          '<ul class="bsent"><li><span class="sg sg--p">+</span>' + hl(f.pos, f) + '</li><li><span class="sg sg--n">−</span>' + hl(f.neg, f) + '</li><li><span class="sg sg--q">?</span>' + hl(f.q, f) + '</li></ul>' +
+          '<ul class="bsent"><li><span class="sg sg--p">+</span><span>' + hl(f.pos, f) + '</span></li><li><span class="sg sg--n">−</span><span>' + hl(f.neg, f) + '</span></li><li><span class="sg sg--q">?</span><span>' + hl(f.q, f) + '</span></li></ul>' +
           '<p class="bmk">' + esc(tp.markers.slice(0, 3).join(" · ")) + '</p></article>';
       }).join("") + '</div></section>';
     }).join("");
@@ -622,5 +624,5 @@
     }
   });
 
-  Shyn.engSummary = function () { return { xp: todayXP(), goal: goal(), next: G.topics[nextTopic()].name, due: dueTopics().length }; };
+  Shyn.engSummary = function () { var n = nextTopic(); return { xp: todayXP(), goal: goal(), next: G.topics[n].name, nextId: n, nextImp: G.topics[n].imp, due: dueTopics().length }; };
 })(window);

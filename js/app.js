@@ -30,9 +30,10 @@
     if (name === "quiz" && !S.test) name = "home";
     if (name === "result" && !S.lastResult) name = "home";
     var fn = routes[name] || routes.home;
-    U.$$(".navlink").forEach(function (a) { a.classList.toggle("is-active", a.getAttribute("data-r") === (name === "lesson" ? "eng" : name)); });
     document.body.setAttribute("data-route", name);
+    Shyn._route = name;
     fn(h.slice(1));
+    if (Shyn.Nav) Shyn.Nav.decorate(name);
     if (!Shyn._keepScroll) global.scrollTo(0, 0);
     Shyn._keepScroll = false;
     var main = document.getElementById("view"); if (main) main.focus({ preventScroll: true });
@@ -163,7 +164,8 @@
     }
     var qs = all.filter(function (q) { return kind === "due" ? due[q.id] : due[q.id] || weak[q.topic]; });
     qs.sort(function (a, b) { return prio(b) - prio(a); });
-    if (!qs.length) { U.toast("Тарих әлі аз — бір нұсқаны тапсырсаңыз, жеке іріктеме пайда болады"); return; }
+    if (!qs.length && kind === "weak") { startTest("adaptive:start", "Бастапқы диагностика: 20 сұрақ", U.shuffle(all.filter(function (q) { return !q.passage && !q.audio; })).slice(0, 20), { mode: "practice", fresh: true }); return; }
+    if (!qs.length) { U.toast("Қайталауға келген сұрақ әзірге жоқ"); return; }
     startTest("adaptive:" + kind, kind === "due" ? "Аралықпен қайталау" : "Әлсіз тақырыптар", qs.slice(0, 20), { mode: "practice" });
   };
   Shyn.launchExam = function (subjects, secPerQ) {
@@ -220,19 +222,13 @@
       '</section>' +
       (Shyn.Game ? Shyn.Game.homeHTML() : "") +
       (sessions ? '<section class="block"><h2>Жалғастыру</h2><div class="resumes">' + sessions + '</div></section>' : "") +
-      '<section class="block"><h2>Бүгінгі жаттығу</h2><div class="actions">' +
-        action("mistakes", "Қателермен жұмыс", wrong ? wrong + " сұрақта қателескенсіз — соларды қайта шығарыңыз" : "Қате жіберген сұрақтарыңыз осында жиналады", wrong, wrong ? "Бастау" : null) +
-        action("due", "Аралықпен қайталау", due ? due + " сұрақты қайталау уақыты келді" : "Дұрыс жауаптар 3, 7, 21 күннен кейін қайта шығады", due, due ? "Қайталау" : null) +
-        action("weak", "Әлсіз тақырыптар", "Ең нашар тақырыптардан және қайталауға келген сұрақтардан 20 сұрақ", 0, "Жинау") +
-        (Shyn.engSummary ? action("eng", "Ағылшын грамматикасы", "Бүгін " + Shyn.engSummary().xp + " / " + Shyn.engSummary().goal + " XP. Келесі сабақ: " + Shyn.engSummary().next, Shyn.engSummary().due, "Сабаққа өту") : "") +
-        action("lab", "Алгоритм және SQL зертханасы", "Сұрыптауды қадам бойынша көру, SQL-ды нақты дерекқорда жазу, қалыпты форманы есептеу", 0, "Зертханаға өту") +
-        action("cards", "Есте сақтау карточкалары", Shyn.cards.length + " қысқа факт: анықтамалар, күрделілік, қасиеттер", 0, "Ашу") +
+      '<section class="block"><h2>Бүгінгі жоспар</h2><div class="actions actions--4">' +
+        action("review", "Қайталау", (due + wrong) ? (due ? due + " сұрақты қайталау уақыты келді" : "") + (due && wrong ? ", " : "") + (wrong ? wrong + " қате сұрақ күтіп тұр" : "") : "20 сұрақтық диагностика — әлсіз тақырыптарыңды анықтайды", due + wrong, due ? "Қайталау" : wrong ? "Қателерді шығару" : "Бастау") +
+        (Shyn.engInt ? action("eint", "Ағылшын интенсиві", Shyn.engInt().text, Shyn.engInt().left, Shyn.engInt().started ? "Бүгінгі тапсырмалар" : "Интенсивті бастау") : "") +
+        action("blitz", "Блиц · 60 секунд", "Комбо жина, рекордыңды жаң. Рекорд: " + (Shyn.Game ? Shyn.Game.state.blitzBest : 0), 0, "Ойнау") +
+        action("media", "Видеосабақтар", "Курс видеолары тақырып бойынша, прогресспен", 0, "Ашу") +
       '</div></section>' +
-      '<section class="block block--split"><div><h2>Әлсіз тақырыптар</h2><div class="weaks">' + weakHTML + '</div>' +
-        (stats.length ? '<a class="link" href="#/stats">Толық статистика</a>' : "") + '</div>' +
-        '<div><h2>Тақырып бойынша жаттығу</h2><p class="muted">Бір тақырыптың барлық нұсқалардағы сұрақтарын жинаңыз.</p>' +
-        '<div class="inline"><select id="topicSel" class="field"><option value="">Тақырыпты таңдаңыз</option>' + topicOptions() + '</select>' +
-        '<button class="btn btn--primary" id="topicGo">Бастау</button></div></div></section>';
+      (Shyn.Game ? Shyn.Game.qotdHTML() : "");
 
     if (Shyn.Game) Shyn.Game.bindHome();
     var sd = U.$("#setDate"); if (sd) sd.addEventListener("click", function () { Shyn.go("#/settings"); });
@@ -241,10 +237,9 @@
     U.on("[data-topic]", "click", function (e, el) { Shyn.launchTopic(el.getAttribute("data-topic")); }, view);
     U.on("[data-act]", "click", function (e, el) {
       var a = el.getAttribute("data-act");
-      if (a === "mistakes") Shyn.launchMistakes(); else if (a === "due") Shyn.launchAdaptive("due");
-      else if (a === "weak") Shyn.launchAdaptive("weak"); else if (a === "cards") Shyn.go("#/cards"); else if (a === "eng") Shyn.go("#/eng"); else if (a === "lab") Shyn.go("#/lab");
+      if (a === "review") { if (due) Shyn.launchAdaptive("due"); else if (wrong) Shyn.launchMistakes(); else Shyn.launchAdaptive("weak"); }
+      else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "media") Shyn.go("#/media");
     }, view);
-    U.$("#topicGo").addEventListener("click", function () { var t = U.$("#topicSel").value; if (t) Shyn.launchTopic(t); else U.toast("Алдымен тақырыпты таңдаңыз"); });
   });
   function action(key, title, text, count, cta) {
     return '<div class="act"><div class="act__head"><h3>' + title + '</h3>' + (count ? '<span class="pill">' + count + '</span>' : "") + '</div>' +
@@ -451,7 +446,7 @@
     var conf = '<div class="conf" role="group" aria-label="Сенімділік"><span>Қаншалықты сенімдісіз?</span>' + Object.keys(CONF).map(function (k) {
       return '<button class="conf__b' + (S.conf[q.id] === k ? " is-on" : "") + '" data-conf="' + k + '">' + CONF[k] + '</button>'; }).join("") + '</div>';
     w.innerHTML = '<article class="q">' + head + '<div class="q__tags">' + tags + '</div>' +
-      (q.passage ? '<details class="passage" open><summary>Тапсырмаға мәтін</summary><div class="passage__t">' + Shyn.fmt(q.passage) + '</div></details>' : "") +
+      (q.passage ? '<details class="passage"' + (q.audio ? "" : " open") + '><summary>' + (/^Тыңдалым/.test(q.topic || "") ? (q.audio ? "Транскрипт (алдымен аудионы тыңдап көріңіз)" : "Тыңдалым мәтіні (транскрипт)") : "Тапсырмаға мәтін") + '</summary><div class="passage__t">' + Shyn.fmt(q.passage) + '</div></details>' : "") +
       (q.audio ? '<div class="audio"><span>Аудиожазба — жауап осы жазба бойынша анықталады</span><audio controls preload="none" src="' + encodeURI(q.audio) + '"></audio></div>' : "") +
       '<div class="q__text">' + Shyn.fmt(q.q) + '</div>' + Shyn.code(q.code) +
       '<p class="q__hint">' + (q.multi ? "Бір немесе бірнеше дұрыс жауапты таңдаңыз (үштен аспайды). Толық жиын — 2 балл, ішінара — 1 балл." : "Бір жауапты таңдаңыз.") + '</p>' +
