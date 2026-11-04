@@ -146,7 +146,7 @@
       else if (ordered && JSON.stringify(a.slice().sort()) === JSON.stringify(b.slice().sort())) why = "Жолдар дұрыс, бірақ реті басқа — ORDER BY тексеріңіз.";
       else why = "Мәндер сәйкес емес.";
     }
-    try { var done = JSON.parse(localStorage.getItem("shyn_sql_done") || "{}"); if (ok) { done[SQ.task] = 1; localStorage.setItem("shyn_sql_done", JSON.stringify(done)); } } catch (e) {}
+    try { var done = JSON.parse(localStorage.getItem("shyn_sql_done") || "{}"); if (ok) { var fresh = !done[SQ.task]; done[SQ.task] = 1; localStorage.setItem("shyn_sql_done", JSON.stringify(done)); if (fresh && Shyn.Game) Shyn.Game.event("sql", 1, 30); } } catch (e) {}
     U.$("#qOut").innerHTML = '<p class="labres ' + (ok ? "is-ok" : "is-no") + '">' + (ok ? "Дұрыс! Нәтиже эталонмен сәйкес келеді." : "Әзірге дұрыс емес. " + why) + '</p>' +
       '<div class="sqlcmp"><div><h3>Сіздің нәтижеңіз</h3>' + resTable(mine) + '</div><div><h3>Күтілетін нәтиже</h3>' + resTable(ref) + '</div></div>';
   }

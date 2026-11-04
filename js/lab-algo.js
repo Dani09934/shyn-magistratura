@@ -26,6 +26,7 @@
   Shyn.route("lab", function (args) {
     var sub = args[0] || "";
     var fn = LAB.pages[sub] || LAB.pages[""];
+    if (sub && LAB.pages[sub] && Shyn.Game) Shyn.Game.lab(sub);
     fn(args.slice(1));
   });
 

@@ -251,6 +251,7 @@
   function finishLesson() {
     var first = Object.keys(L.firstTry).length, acc = Math.round(first / L.total * 100);
     var bonus = acc === 100 ? 10 : 0, gain = L.xp + bonus;
+    if (Shyn.Game) Shyn.Game.event("lesson", 1, gain);
     var lvlMsg = "";
     var touched = {}; L.queue.forEach(function (x) { touched[x.tid] = true; });
     Object.keys(touched).forEach(function (tid) {

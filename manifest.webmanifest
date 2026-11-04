@@ -19,8 +19,9 @@
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "shortcuts": [
+    { "name": "Блиц · 60 секунд", "short_name": "Блиц", "url": "./#/blitz", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Нұсқалар", "short_name": "Нұсқалар", "url": "./#/variants", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Ағылшын курсы", "short_name": "Курс", "url": "./#/eng", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Тесттер тарихы", "short_name": "Тарих", "url": "./#/history", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Шпаргалкалар", "short_name": "Шпаргалка", "url": "./#/cheats", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

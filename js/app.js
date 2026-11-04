@@ -218,6 +218,7 @@
         '<div class="hero__side"><div class="countdown">' + countdown + '</div>' +
         '<div class="streak"><div class="streak__strip">' + strip + '</div><div class="streak__t">' + (streak ? "Қатарынан " + streak + " күн оқудасыз" : "Бүгін бастап, күн сайын аздап оқыңыз") + '</div></div></div>' +
       '</section>' +
+      (Shyn.Game ? Shyn.Game.homeHTML() : "") +
       (sessions ? '<section class="block"><h2>Жалғастыру</h2><div class="resumes">' + sessions + '</div></section>' : "") +
       '<section class="block"><h2>Бүгінгі жаттығу</h2><div class="actions">' +
         action("mistakes", "Қателермен жұмыс", wrong ? wrong + " сұрақта қателескенсіз — соларды қайта шығарыңыз" : "Қате жіберген сұрақтарыңыз осында жиналады", wrong, wrong ? "Бастау" : null) +
@@ -233,6 +234,7 @@
         '<div class="inline"><select id="topicSel" class="field"><option value="">Тақырыпты таңдаңыз</option>' + topicOptions() + '</select>' +
         '<button class="btn btn--primary" id="topicGo">Бастау</button></div></div></section>';
 
+    if (Shyn.Game) Shyn.Game.bindHome();
     var sd = U.$("#setDate"); if (sd) sd.addEventListener("click", function () { Shyn.go("#/settings"); });
     U.$("#examBtn").addEventListener("click", openExamModal);
     U.on("[data-resume]", "click", function (e, el) { resumeSession(el.getAttribute("data-resume")); }, view);
