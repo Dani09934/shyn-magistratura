@@ -1,6 +1,6 @@
 /* Шың — service worker: сайтты басты экранға орнатуға және интернетсіз ашуға мүмкіндік береді.
    Бұл файл tools/gen_sw.py арқылы жасалады — қолмен өзгертпеңіз. */
-var VERSION = "shyn-0c8c1398a5";
+var VERSION = "shyn-d7c47e7ee9";
 var PRECACHE = [
 "./",
 "index.html",
@@ -85,9 +85,29 @@ var PRECACHE = [
 "data/sets/v4-algo.js",
 "data/sets/v4-db.js",
 "data/sets/v4-english.js",
+"data/sets/v40-english.js",
+"data/sets/v41-english.js",
+"data/sets/v42-english.js",
+"data/sets/v43-english.js",
+"data/sets/v44-english.js",
+"data/sets/v45-english.js",
+"data/sets/v46-english.js",
+"data/sets/v47-english.js",
+"data/sets/v48-english.js",
+"data/sets/v49-english.js",
 "data/sets/v5-algo.js",
 "data/sets/v5-db.js",
 "data/sets/v5-english.js",
+"data/sets/v50-english.js",
+"data/sets/v51-english.js",
+"data/sets/v52-english.js",
+"data/sets/v53-english.js",
+"data/sets/v54-english.js",
+"data/sets/v55-english.js",
+"data/sets/v56-english.js",
+"data/sets/v57-english.js",
+"data/sets/v58-english.js",
+"data/sets/v59-english.js",
 "data/sets/v6-algo.js",
 "data/sets/v6-db.js",
 "data/sets/v6-english.js",
