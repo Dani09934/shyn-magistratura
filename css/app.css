@@ -1242,3 +1242,35 @@ kbd { font-family: var(--mono); font-size: .72em; opacity: .75; margin-left: 4px
   .labnav__g > div { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 4px; }
   .labnav__g > div::-webkit-scrollbar { display: none; }
 }
+
+/* ===== Қателер дәптері ===== */
+.kpis > .kpi-link { padding: 16px 16px 16px 16px; border-left: 1px solid var(--line); display: flex; flex-direction: column; color: inherit; text-decoration: none; }
+.kpis > .kpi-link:hover b { color: var(--kok); }
+.act__link { margin-top: 10px; font-size: .9rem; color: var(--kok); }
+.mk__go { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--no); border-radius: var(--radius); padding: 18px 20px; }
+.mk__go h2 { margin: 0 0 4px; }
+.mk__go p { margin: 0; max-width: 60ch; }
+.mk__go .inline { margin-top: 0; }
+.mk__h { margin: 6px 0 8px; font-size: 1rem; }
+.mk__topics { margin-bottom: 16px; }
+.weak.mk__topic { grid-template-columns: minmax(0, 1fr) auto; }
+.mk__topic.is-on { background: var(--kok-tint); }
+.mk__meta { display: block; color: var(--soft); font-size: .82rem; margin-top: 4px; }
+.mk__tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.mk__acts { margin-top: 10px; }
+.mk__passage { margin: 4px 0 10px; font-size: .92rem; }
+.mk__passage > summary { cursor: pointer; color: var(--kok); }
+.mk__passage > div { max-height: 260px; overflow: auto; padding: 8px 12px; background: var(--surface-2); border-radius: var(--radius-s); line-height: 1.6; white-space: pre-line; }
+.mk__fixed { text-align: center; margin-top: 12px; }
+@media (max-width: 640px) {
+  .mk__go { padding: 16px; }
+  .mk__go .inline { width: 100%; }
+  .mk__go .inline .btn { flex: 1 1 100%; }
+  .mk .rv details > *:not(summary), .rv.mk details > *:not(summary) { margin-left: 0; }
+}
+@media print {
+  body.print-mk .rail, body.print-mk .tabbar, body.print-mk .secnav, body.print-mk .subnav, body.print-mk .kpis, body.print-mk .mk__go,
+  body.print-mk .toolbar, body.print-mk .mk__topics, body.print-mk .mk__h, body.print-mk .mk__acts, body.print-mk .topbar, body.print-mk header.top { display: none !important; }
+  body.print-mk .rv.mk { break-inside: avoid; }
+  body.print-mk .rv.mk details > *:not(summary) { margin-left: 0; }
+}

@@ -234,7 +234,7 @@
     var RN = { unknown: "білмедім", confused: "шатастырдым", careless: "асығыстық", none: "белгісіз" };
     view.innerHTML = '<header class="page-head"><h1>Статистика</h1><p class="muted">Барлық деректер тек осы браузерде сақталады.</p></header>' +
       '<div class="kpis"><div><b>' + Store.learnedCount() + '</b><span>сұрақ шығарылды (' + all.length + ' ішінен)</span></div><div><b>' + H.length + '</b><span>тест аяқталды</span></div>' +
-      '<div><b>' + Store.streak() + '</b><span>күн қатарынан</span></div><div><b>' + Store.wrongIds().length + '</b><span>сұрақ қателер тізімінде</span></div></div>' +
+      '<div><b>' + Store.streak() + '</b><span>күн қатарынан</span></div><a class="kpi-link" href="#/mistakes"><b>' + Store.wrongIds().length + '</b><span>сұрақ қателер дәптерінде</span></a></div>' +
       '<section class="block"><h2>Белсенділік</h2><p class="muted">Соңғы 26 апта · ' + activeDays + ' белсенді күн · ' + totalAct + ' әрекет</p><div class="heat">' + cells + '</div></section>' +
       '<section class="block"><h2>Нәтижелер динамикасы</h2>' + (chart || '<p class="muted">Кемінде екі тест аяқталғанда график пайда болады.</p>') + '</section>' +
       (Object.keys(subj).length ? '<section class="block"><h2>Пәндер бойынша</h2><div class="weaks">' + Object.keys(subj).map(function (k) {

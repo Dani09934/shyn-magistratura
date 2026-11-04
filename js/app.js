@@ -223,7 +223,7 @@
       (Shyn.Game ? Shyn.Game.homeHTML() : "") +
       (sessions ? '<section class="block"><h2>Жалғастыру</h2><div class="resumes">' + sessions + '</div></section>' : "") +
       '<section class="block"><h2>Бүгінгі жоспар</h2><div class="actions actions--4">' +
-        action("review", "Қайталау", (due + wrong) ? (due ? due + " сұрақты қайталау уақыты келді" : "") + (due && wrong ? ", " : "") + (wrong ? wrong + " қате сұрақ күтіп тұр" : "") : "20 сұрақтық диагностика — әлсіз тақырыптарыңды анықтайды", due + wrong, due ? "Қайталау" : wrong ? "Қателерді шығару" : "Бастау") +
+        action("review", "Қайталау", (due + wrong) ? (due ? due + " сұрақты қайталау уақыты келді" : "") + (due && wrong ? ", " : "") + (wrong ? wrong + " қате сұрақ күтіп тұр" : "") : "20 сұрақтық диагностика — әлсіз тақырыптарыңды анықтайды", due + wrong, due ? "Қайталау" : wrong ? "Қателерді шығару" : "Бастау", wrong ? '<a class="act__link" href="#/mistakes">Қателер дәптері · ' + wrong + '</a>' : "") +
         (Shyn.engInt ? action("eint", "Ағылшын интенсиві", Shyn.engInt().text, Shyn.engInt().left, Shyn.engInt().started ? "Бүгінгі тапсырмалар" : "Интенсивті бастау") : "") +
         action("blitz", "Блиц · 60 секунд", "Комбо жина, рекордыңды жаң. Рекорд: " + (Shyn.Game ? Shyn.Game.state.blitzBest : 0), 0, "Ойнау") +
         action("media", "Видеосабақтар", "Курс видеолары тақырып бойынша, прогресспен", 0, "Ашу") +
@@ -241,9 +241,9 @@
       else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "media") Shyn.go("#/media");
     }, view);
   });
-  function action(key, title, text, count, cta) {
+  function action(key, title, text, count, cta, extra) {
     return '<div class="act"><div class="act__head"><h3>' + title + '</h3>' + (count ? '<span class="pill">' + count + '</span>' : "") + '</div>' +
-      '<p>' + text + '</p>' + (cta ? '<button class="btn btn--line" data-act="' + key + '">' + cta + '</button>' : '<button class="btn btn--line" disabled>Әзірге бос</button>') + '</div>';
+      '<p>' + text + '</p>' + (cta ? '<button class="btn btn--line" data-act="' + key + '">' + cta + '</button>' : '<button class="btn btn--line" disabled>Әзірге бос</button>') + (extra || "") + '</div>';
   }
   function topicOptions() {
     var m = {};
@@ -516,7 +516,7 @@
     if (!(S.answers[q.id] || []).length) return;
     S.checked[q.id] = true;
     var r = Score.question(q, S.answers[q.id]);
-    Store.markWrong(q.id, r.state !== "correct");
+    Store.markWrong(q.id, r.state !== "correct", S.answers[q.id]);
     Store.recordLearning(q, r, S.conf[q.id], S.reasons[q.id]);
     persist(); drawGrid(); drawQuestion(); drawLive();
     var ex = U.$(".explain"); if (ex && ex.scrollIntoView) ex.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
@@ -534,7 +534,7 @@
       if (q.missing) return;
       var r = Score.question(q, S.answers[q.id]);
       if (r.state === "empty" && t.mode === "practice") return; // жаттығуда ашылмаған сұрақтарды қате деп санамаймыз
-      Store.markWrong(q.id, r.state !== "correct");
+      if (!(t.mode === "practice" && S.checked[q.id])) Store.markWrong(q.id, r.state !== "correct", S.answers[q.id]);
       if (!(t.mode === "practice" && S.checked[q.id])) Store.recordLearning(q, r, S.conf[q.id], S.reasons[q.id]);
     });
     var subj = {};

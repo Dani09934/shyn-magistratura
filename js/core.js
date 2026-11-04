@@ -138,7 +138,26 @@
     },
     history: function () { return st.history.slice(); },
 
-    markWrong: function (id, isWrong) { if (isWrong) st.wrong[id] = true; else delete st.wrong[id]; save(); },
+    // Қателер дәптері: әр қате сұрақ үшін соңғы таңдау, қанша рет қателескені және қашан
+    markWrong: function (id, isWrong, sel) {
+      var w = st.wrong[id];
+      if (isWrong) {
+        var o = w && typeof w === "object" ? w : { n: 0, first: Date.now() };
+        o.n = (o.n || 0) + 1; o.at = Date.now(); if (sel && sel.length) o.sel = sel.slice();
+        st.wrong[id] = o;
+      } else if (w) {
+        delete st.wrong[id];
+        var d = U.dayKey(); st.fixed = st.fixed || {}; st.fixed[d] = (st.fixed[d] || 0) + 1;
+      }
+      save();
+    },
+    wrongInfo: function (id) { var w = st.wrong[id]; return w ? (typeof w === "object" ? w : { n: 1 }) : null; },
+    dismissWrong: function (id) { delete st.wrong[id]; save(); },
+    fixedSince: function (days) {
+      var f = st.fixed || {}, n = 0, d = new Date();
+      for (var i = 0; i < days; i++) { n += f[U.dayKey(d)] || 0; d.setDate(d.getDate() - 1); }
+      return n;
+    },
     wrongIds: function () { return Object.keys(st.wrong); },
     clearWrong: function () { st.wrong = {}; save(); },
 
