@@ -53,7 +53,7 @@
   function loadCatalog() {
     if (Shyn.mediaCatalog) return Promise.resolve(Shyn.mediaCatalog);
     return new Promise(function (res) {
-      var sc = document.createElement("script"); sc.src = "data/media-catalog.js";
+      var sc = document.createElement("script"); sc.src = "data/media-catalog.js" + (global.SHYN_BUILD ? "?v=" + global.SHYN_BUILD : "");
       sc.onload = function () { res(Shyn.mediaCatalog || null); }; sc.onerror = function () { res(null); };
       document.head.appendChild(sc);
     });

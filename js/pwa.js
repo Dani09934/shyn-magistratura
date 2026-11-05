@@ -13,7 +13,7 @@
 
   if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
     var hadController = !!navigator.serviceWorker.controller;
-    global.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+    global.addEventListener("load", function () { navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(function (reg) { try { reg.update(); } catch (e) {} }).catch(function () {}); });
     // Сайттың жаңа нұсқасы орнатылса: тест/сабақ жүріп жатпаса — бетті жаңартамыз, әйтпесе хабарлаймыз
     navigator.serviceWorker.addEventListener("controllerchange", function () {
       if (!hadController) { hadController = true; return; }

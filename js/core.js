@@ -20,7 +20,7 @@
     if (!pending) return fire();
     files.forEach(function (f) {
       var s = document.createElement("script");
-      s.src = "data/sets/" + f + ".js";
+      s.src = "data/sets/" + f + ".js" + (global.SHYN_BUILD ? "?v=" + global.SHYN_BUILD : "");
       s.onload = s.onerror = function () { if (--pending === 0) fire(); };
       document.head.appendChild(s);
     });
