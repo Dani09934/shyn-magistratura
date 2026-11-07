@@ -168,14 +168,26 @@
     if (!qs.length) { U.toast("Қайталауға келген сұрақ әзірге жоқ"); return; }
     startTest("adaptive:" + kind, kind === "due" ? "Аралықпен қайталау" : "Әлсіз тақырыптар", qs.slice(0, 20), { mode: "practice" });
   };
+  Shyn.EXAM_SIZE = { english: 50, fundamentals: 30, algo: 30, db: 20 };
   Shyn.launchExam = function (subjects, secPerQ) {
+    Shyn.allQuestions();
     var qs = [], picked = [];
     subjects.forEach(function (sub) {
       var sets = Shyn.allSets().filter(function (s) { return s.subject === sub; });
       if (!sets.length) return;
-      var set = sets[Math.floor(Math.random() * sets.length)];
-      picked.push(Shyn.SUBJECT[sub].short + " " + set.variant);
-      qs = qs.concat(set.questions);
+      var need = Shyn.EXAM_SIZE[sub] || 30;
+      // Толық нұсқа (кемінде need сұрақ), көбіне Тест орталығы нұсқасы; жоқ болса — аралас іріктеме
+      var full = sets.filter(function (s) { return s.questions.filter(function (q) { return !q.missing; }).length >= need; });
+      var tc = full.filter(function (s) { return s.source === "tc"; });
+      var pool = Math.random() < 0.6 && tc.length ? tc : full;
+      if (pool.length) {
+        var set = pool[Math.floor(Math.random() * pool.length)];
+        picked.push(Shyn.SUBJECT[sub].short + " " + set.variant);
+        qs = qs.concat(set.questions.filter(function (q) { return !q.missing; }).slice(0, need));
+      } else {
+        picked.push(Shyn.SUBJECT[sub].short + " (аралас)");
+        qs = qs.concat(U.shuffle(Shyn.allQuestions().filter(function (q) { return q._subject === sub && !q.missing && !q.passage && !q.audio; })).slice(0, need));
+      }
     });
     if (!qs.length) { U.toast("Кемінде бір пәнді таңдаңыз"); return; }
     startTest("exam:" + subjects.join(",") + ":" + Date.now(), "Емтихан · " + picked.join(", "), qs, { mode: "exam", secPerQ: secPerQ });
@@ -264,11 +276,11 @@
     var rows = Shyn.SUBJECT_ORDER.map(function (sub) {
       var sets = Shyn.allSets().filter(function (s) { return s.subject === sub; });
       if (!sets.length) return "";
-      return '<label class="check check--row"><input type="checkbox" class="exSub" value="' + sub + '"' + (sub === "fundamentals" ? "" : " checked") + '>' +
-        '<span>' + Shyn.SUBJECT[sub].name + '</span><span class="muted">' + sets.length + ' нұсқа · ' + sets[0].questions.length + ' сұрақ</span></label>';
+      return '<label class="check check--row"><input type="checkbox" class="exSub" value="' + sub + '" checked>' +
+        '<span>' + Shyn.SUBJECT[sub].name + '</span><span class="muted">' + (Shyn.EXAM_SIZE[sub] || 30) + ' сұрақ · ' + sets.length + ' нұсқадан</span></label>';
     }).join("");
     Shyn.modal('<h2 class="modal__title">Емтихан режимі</h2>' +
-      '<p class="muted">Әр пән үшін кездейсоқ бір нұсқа алынады. Таймер жүреді, түсіндірмелер тек соңында ашылады.</p>' +
+      '<p class="muted">Нақты КТ құрылымы: ағылшын 50, ОДТ 30, алгоритмдер 30, деректер қоры 20 сұрақ. Әр пәнге кездейсоқ толық нұсқа алынады, таймер жүреді, түсіндірмелер соңында ашылады.</p>' +
       '<div class="stack">' + rows + '</div>' +
       '<label class="lbl">Бір сұраққа уақыт<select id="exPace" class="field"><option value="72">1,2 минут (стандарт)</option><option value="60">1 минут (қатаң)</option><option value="90">1,5 минут (жайлы)</option></select></label>' +
       '<div class="modal__actions"><button class="btn btn--primary" id="exGo">Емтиханды бастау</button><button class="btn btn--ghost" data-close>Болдырмау</button></div>');
@@ -434,7 +446,7 @@
       bindQ(q); return;
     }
     var sel = S.answers[q.id] || [], done = S.test.mode === "practice" && S.checked[q.id];
-    var tags = '<span class="tag">' + esc(q.topic || "") + '</span>' +
+    var tags = '<span class="tag">' + esc(q.topicFine || q.topic || "") + '</span>' +
       '<span class="tag tag--' + (q.multi ? "multi" : "single") + '">' + (q.multi ? "бірнеше жауап" : "бір жауап") + '</span>' +
       (q.extra ? '<span class="tag tag--extra">қосымша</span>' : "") + (q.disputed && done ? '<span class="tag tag--warn">даулы</span>' : "");
     var opts = q._opts.map(function (o) {
