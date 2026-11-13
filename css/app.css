@@ -1383,3 +1383,34 @@ kbd { font-family: var(--mono); font-size: .72em; opacity: .75; margin-left: 4px
 .explain__fy { margin: 12px 0 0; font-size: .92rem; }
 .explain__fy a { color: var(--kok); font-weight: 600; }
 .pmini--cta { border-left: 4px solid var(--gold); }
+
+/* ===== Формулалар және қиын есептер ===== */
+.fml-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0 6px; }
+.fml-bar .inline { gap: 8px; flex-wrap: wrap; }
+.fml-search { font: inherit; padding: 9px 14px; min-width: 0; width: 260px; max-width: 100%; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.fml-sec { margin: 22px 0; }
+.fml-sec h2 { font-size: 1.05rem; padding-bottom: 8px; border-bottom: 2px solid var(--ink); margin-bottom: 0; }
+.fml-tbl { display: grid; }
+.fml-row { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 4px 18px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.fml-name { font-weight: 600; font-size: .95rem; }
+.fml-body { display: grid; gap: 4px; min-width: 0; }
+.fml-f { font-family: var(--mono); font-size: .92rem; background: none; padding: 0; color: var(--ink); white-space: normal; overflow-wrap: anywhere; }
+.fml-note { color: var(--soft); font-size: .86rem; }
+@media (max-width: 640px) { .fml-row { grid-template-columns: minmax(0, 1fr); } .fml-search { width: 100%; } .fml-bar .inline { width: 100%; } }
+.hard { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 14px; max-width: 820px; }
+.hard__item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; min-width: 0; }
+.hard__top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.hard__n { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--surface); font-family: var(--display); font-size: .85rem; }
+.hard__q { font-size: 1.02rem; line-height: 1.5; }
+.hard__item pre { overflow-x: auto; max-width: 100%; }
+.hard__opts { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 4px; color: var(--ink); }
+.hard__opts b { color: var(--soft); font-weight: 600; margin-right: 4px; }
+.hard__sol { border-top: 1px dashed var(--line); padding-top: 10px; }
+.hard__sol summary { cursor: pointer; color: var(--kok); font-weight: 600; }
+.hard__sol p { margin: 8px 0 0; line-height: 1.55; }
+.hard__ans { color: var(--ok); font-weight: 600; }
+@media print {
+  body.print-fml .topbar, body.print-fml .sidebar, body.print-fml .tabbar, body.print-fml .subnav, body.print-fml .fml-bar, body.print-fml .page-head p { display: none !important; }
+  body.print-fml .fml-row { break-inside: avoid; padding: 5px 0; }
+  body.print-fml .fml-sec { break-inside: auto; margin: 10px 0; }
+}
