@@ -11,8 +11,8 @@
              ["#/eng/verbs", "Сөздер", ["#/eng/pron", "#/synonyms"]], ["#/eng/game", "Ойын"]],
       sub: { "#/eng/verbs": [["#/eng/verbs", "Етістіктер"], ["#/eng/pron", "Есімдіктер"], ["#/synonyms", "Синонимдер"]],
              "#/eng/table": [["#/eng/table", "12 шақ кестесі"], ["#/eng/build", "Шақ құрастырғыш"]] } },
-    { id: "learn", name: "Оқу", href: "#/media", routes: ["media", "lab", "cheats", "cards", "sorting"],
-      tabs: [["#/media", "Видео"], ["#/lab", "Зертхана"], ["#/cheats", "Шпаргалка", ["#/sorting"]], ["#/cards", "Карточкалар"]] },
+    { id: "learn", name: "Оқу", href: "#/explain", routes: ["explain", "media", "lab", "cheats", "cards", "sorting"],
+      tabs: [["#/explain", "Түсіну"], ["#/media", "Видео"], ["#/lab", "Зертхана"], ["#/cheats", "Шпаргалка", ["#/sorting"]], ["#/cards", "Карточкалар"]] },
     { id: "me", name: "Прогресс", href: "#/stats", routes: ["stats", "history", "me", "settings", "install", "more"],
       tabs: [["#/stats", "Статистика"], ["#/history", "Тарих"], ["#/me", "Жетістіктер"], ["#/settings", "Баптаулар", ["#/install"]]] }
   ];

@@ -477,7 +477,15 @@
       '<p class="explain__ans">Дұрыс жауап: <b>' + esc(q.correct.join(", ")) + '</b>' + (q.derived ? ' <span class="muted">(кілт талдау арқылы анықталған)</span>' : "") + '</p>' +
       '<div class="explain__t">' + Shyn.fmt(q.ex || "Түсіндірме кейін қосылады.") + '</div>' +
       (q.disputed ? '<p class="warn">Даулы жауап. ' + esc(q.dnote || "Ресми кілт осы нұсқаны есептейді, бірақ академиялық тұрғыдан ол қате болуы мүмкін.") + '</p>' : "") +
-      (r.state !== "correct" ? reasonHTML(q.id) + aiHTML(q.id) : "") + '</section>';
+      (r.state !== "correct" ? reasonHTML(q.id) + aiHTML(q.id) : "") + feynLink(q) + '</section>';
+  }
+  // Қате болса — сол тақырыпты «Қарапайым тілмен» түсіндіретін бетке сілтеме
+  function feynLink(q) {
+    if (!Shyn.feynman) return "";
+    var txt = (q.topic || "") + " " + (q.topicFine || "") + " " + q.q, hit = null;
+    Shyn.feynman.some(function (t) { if (t.s === q._subject && new RegExp(t.rx, "i").test((q.topic || "") + " " + (q.topicFine || ""))) { hit = t; return true; } });
+    if (!hit) Shyn.feynman.some(function (t) { if (t.s === q._subject && new RegExp(t.rx, "i").test(txt)) { hit = t; return true; } });
+    return hit ? '<p class="explain__fy"><a href="#/explain/' + hit.id + '">Тақырыпты қарапайым тілмен түсіну: ' + esc(hit.t) + '</a></p>' : "";
   }
   function reasonHTML(id) {
     return '<div class="reason"><span>Қатенің себебі:</span>' + Object.keys(REASONS).map(function (k) {

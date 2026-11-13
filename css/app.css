@@ -1341,3 +1341,44 @@ kbd { font-family: var(--mono); font-size: .72em; opacity: .75; margin-left: 4px
 .bootfail { position: fixed; left: 16px; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 9999; display: grid; gap: 8px; padding: 16px; border-radius: 14px; background: #fff; color: #1b2433; box-shadow: 0 10px 40px rgba(0,0,0,.35); font: 15px/1.4 system-ui, sans-serif; max-width: 520px; margin: 0 auto; }
 .bootfail button { justify-self: start; padding: 10px 18px; border: 0; border-radius: 10px; background: #e8b23a; color: #1b2433; font-weight: 700; font-size: 15px; }
 .bootfail small { color: #8a93a3; font-size: 12px; word-break: break-word; }
+
+/* ===== Қарапайым тілмен (Фейнман) ===== */
+.fy-prog { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: .9rem; color: var(--soft); }
+.fy-prog__bar { flex: 1; max-width: 320px; height: 8px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+.fy-prog__bar i { display: block; height: 100%; background: var(--kok); border-radius: inherit; }
+.fy-group { margin: 22px 0; }
+.fy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.fy-card { display: grid; gap: 6px; align-content: start; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); color: var(--ink); text-decoration: none; transition: border-color .15s, transform .15s; }
+.fy-card:hover { border-color: var(--kok); transform: translateY(-1px); }
+.fy-card b { font-size: 1.02rem; }
+.fy-card span { color: var(--soft); font-size: .9rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.fy-card small { color: var(--soft); font-size: .8rem; }
+.fy-card.is-ok { border-left: 4px solid var(--ok); }
+.fy-card.is-ok small { color: var(--ok); font-weight: 600; }
+.fy-crumbs { font-size: .9rem; color: var(--soft); margin-bottom: 6px; }
+.fy-crumbs a { color: var(--kok); }
+.fy { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 760px; }
+.fy-step { min-width: 0; }
+.fy-step pre.code { overflow-x: auto; max-width: 100%; }
+.fy-step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+.fy-step h2 { display: flex; align-items: center; gap: 10px; font-size: 1.02rem; margin-bottom: .6em; }
+.fy-n { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--kok-tint); color: var(--kok); font-family: var(--display); font-size: .85rem; flex: none; }
+.fy-step--one { background: var(--kok-tint); border-color: transparent; }
+.fy-step--one .fy-n { background: var(--kok); color: var(--kok-ink); }
+.fy-lead { font-size: 1.15rem; line-height: 1.5; margin: 0; font-weight: 500; }
+.fy-step--trap { border-left: 4px solid var(--part); }
+.fy-step--trap .fy-n { background: var(--part-tint); color: var(--part); }
+.fy-step ul, .fy-step ol { padding-left: 1.2em; margin: .4em 0; }
+.fy-step li { margin: .3em 0; }
+.fy-step pre.code { margin-top: 12px; }
+.fy textarea { width: 100%; font: inherit; padding: 12px; border-radius: var(--radius-s); border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); resize: vertical; }
+.fy-checks { display: grid; gap: 8px; margin: 14px 0; }
+.fy-check { border: 1px solid var(--line); border-radius: var(--radius-s); padding: 10px 14px; background: var(--surface-2); }
+.fy-check summary { cursor: pointer; font-weight: 500; }
+.fy-check p { margin: 8px 0 0; color: var(--ok); font-weight: 500; }
+.fy-actions { flex-wrap: wrap; gap: 10px; }
+.fy-pager { display: flex; justify-content: space-between; gap: 12px; max-width: 760px; margin: 18px 0 8px; font-size: .92rem; }
+.fy-pager a { color: var(--kok); }
+@media (max-width: 640px) { .fy-step { padding: 14px 16px; } .fy-lead { font-size: 1.05rem; } }
+.explain__fy { margin: 12px 0 0; font-size: .92rem; }
+.explain__fy a { color: var(--kok); font-weight: 600; }
