@@ -5,7 +5,7 @@
   var SECTIONS = [
     { id: "home", name: "Басты", href: "#/", routes: ["home"] },
     { id: "tests", name: "Тесттер", href: "#/variants", routes: ["variants", "plan", "mistakes", "blitz", "bank"],
-      tabs: [["#/variants", "Нұсқалар"], ["#/plan", "7 күн"], ["#/mistakes", "Қателер"], ["#/blitz", "Блиц"], ["#/bank", "Сұрақтар қоры"]] },
+      tabs: [["#/variants", "Нұсқалар"], ["#/plan", "15 күн"], ["#/mistakes", "Қателер"], ["#/blitz", "Блиц"], ["#/bank", "Сұрақтар қоры"]] },
     { id: "eng", name: "Ағылшын", href: "#/eng/intensive", routes: ["eng", "lesson", "synonyms"],
       tabs: [["#/eng/intensive", "Интенсив"], ["#/eng", "Грамматика", ["#/eng/t", "#/eng/l"]], ["#/eng/review", "Қайталау"], ["#/eng/table", "Шақтар", ["#/eng/build"]],
              ["#/eng/verbs", "Сөздер", ["#/eng/pron", "#/synonyms"]], ["#/eng/game", "Ойын"]],

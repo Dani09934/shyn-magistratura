@@ -169,7 +169,7 @@
     startTest("adaptive:" + kind, kind === "due" ? "Аралықпен қайталау" : "Әлсіз тақырыптар", qs.slice(0, 20), { mode: "practice" });
   };
   Shyn.EXAM_SIZE = { english: 50, fundamentals: 30, algo: 30, db: 20 };
-  Shyn.launchExam = function (subjects, secPerQ) {
+  Shyn.composeExam = function (subjects) {
     Shyn.allQuestions();
     var qs = [], picked = [];
     subjects.forEach(function (sub) {
@@ -189,8 +189,12 @@
         qs = qs.concat(U.shuffle(Shyn.allQuestions().filter(function (q) { return q._subject === sub && !q.missing && !q.passage && !q.audio; })).slice(0, need));
       }
     });
-    if (!qs.length) { U.toast("Кемінде бір пәнді таңдаңыз"); return; }
-    startTest("exam:" + subjects.join(",") + ":" + Date.now(), "Емтихан · " + picked.join(", "), qs, { mode: "exam", secPerQ: secPerQ });
+    return { qs: qs, picked: picked };
+  };
+  Shyn.launchExam = function (subjects, secPerQ) {
+    var r = Shyn.composeExam(subjects);
+    if (!r.qs.length) { U.toast("Кемінде бір пәнді таңдаңыз"); return; }
+    startTest("exam:" + subjects.join(",") + ":" + Date.now(), "Емтихан · " + r.picked.join(", "), r.qs, { mode: "exam", secPerQ: secPerQ });
   };
 
   /* ================= Басты бет ================= */
