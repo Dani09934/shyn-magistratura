@@ -236,14 +236,14 @@
         '<div class="hero__side"><div class="countdown">' + countdown + '</div>' +
         '<div class="streak"><div class="streak__strip">' + strip + '</div><div class="streak__t">' + (streak ? "Қатарынан " + streak + " күн оқудасыз" : "Бүгін бастап, күн сайын аздап оқыңыз") + '</div></div></div>' +
       '</section>' +
-      (Shyn.Game ? Shyn.Game.homeHTML() : "") +
       (Shyn.planHTML ? Shyn.planHTML() : "") +
+      (Shyn.Game ? Shyn.Game.homeHTML() : "") +
       (sessions ? '<section class="block"><h2>Жалғастыру</h2><div class="resumes">' + sessions + '</div></section>' : "") +
       '<section class="block"><h2>Бүгінгі жоспар</h2><div class="actions actions--4">' +
         action("review", "Қайталау", (due + wrong) ? (due ? due + " сұрақты қайталау уақыты келді" : "") + (due && wrong ? ", " : "") + (wrong ? wrong + " қате сұрақ күтіп тұр" : "") : "20 сұрақтық диагностика — әлсіз тақырыптарыңды анықтайды", due + wrong, due ? "Қайталау" : wrong ? "Қателерді шығару" : "Бастау", wrong ? '<a class="act__link" href="#/mistakes">Қателер дәптері · ' + wrong + '</a>' : "") +
         (Shyn.engInt ? action("eint", "Ағылшын интенсиві", Shyn.engInt().text, Shyn.engInt().left, Shyn.engInt().started ? "Бүгінгі тапсырмалар" : "Интенсивті бастау") : "") +
         action("blitz", "Блиц · 60 секунд", "Комбо жина, рекордыңды жаң. Рекорд: " + (Shyn.Game ? Shyn.Game.state.blitzBest : 0), 0, "Ойнау") +
-        action("media", "Видеосабақтар", "Курс видеолары тақырып бойынша, прогресспен", 0, "Ашу") +
+        action("explain", "Қарапайым тілмен", (Shyn.feynman ? Shyn.feynman.length : 24) + " қиын тақырып Фейнман әдісімен: ұқсатым, мысал, өзіңді тексер", 0, "Түсіну") +
       '</div></section>' +
       (Shyn.Game ? Shyn.Game.qotdHTML() : "");
 
@@ -255,7 +255,7 @@
     U.on("[data-act]", "click", function (e, el) {
       var a = el.getAttribute("data-act");
       if (a === "review") { if (due) Shyn.launchAdaptive("due"); else if (wrong) Shyn.launchMistakes(); else Shyn.launchAdaptive("weak"); }
-      else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "media") Shyn.go("#/media");
+      else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "media") Shyn.go("#/media"); else if (a === "explain") Shyn.go("#/explain");
     }, view);
   });
   function action(key, title, text, count, cta, extra) {

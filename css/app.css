@@ -1382,3 +1382,4 @@ kbd { font-family: var(--mono); font-size: .72em; opacity: .75; margin-left: 4px
 @media (max-width: 640px) { .fy-step { padding: 14px 16px; } .fy-lead { font-size: 1.05rem; } }
 .explain__fy { margin: 12px 0 0; font-size: .92rem; }
 .explain__fy a { color: var(--kok); font-weight: 600; }
+.pmini--cta { border-left: 4px solid var(--gold); }

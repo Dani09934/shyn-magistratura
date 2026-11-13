@@ -180,6 +180,7 @@
   Shyn.planHTML = function () {
     var c = current();
     if (c.day < 1 || c.day > N) {
+      if (c.day === 0 && !c.left) return '<section class="block pmini pmini--cta"><div><h2>15 күндік интенсив</h2><p class="muted">М094 спецификациясы бойынша күн сайынғы жоспар: алгоритм, деректер қоры, ағылшын және үш толық сынақ.</p></div><div class="inline"><button class="btn btn--primary" id="pmStart">Бүгін бастау</button><a class="btn btn--line" href="#/plan">Жоспарды көру</a></div></section>';
       if (c.day === 0 && c.left && c.left <= 30) return '<section class="block pmini"><div><h2>Емтиханға ' + c.left + ' күн</h2><p class="muted">15 күндік интенсив ' + (c.left - N) + ' күннен кейін басталады. Қазір де бастауға болады.</p></div><a class="btn btn--line" href="#/plan">Жоспарды көру</a></section>';
       return "";
     }
@@ -190,6 +191,7 @@
       '<div class="inline">' + (next >= 0 ? '<button class="btn btn--primary" data-prun="' + c.day + ':' + next + '">Бастау</button>' : "") + '<a class="btn btn--line" href="#/plan">Жоспар</a></div></section>';
   };
   Shyn.planBind = function (root) {
+    var st = root.querySelector("#pmStart"); if (st) st.addEventListener("click", function () { P.start = dayKey(); P.done = {}; save(); Shyn.go("#/plan"); });
     U.on("[data-prun]", "click", function (e, el) { var a = el.getAttribute("data-prun").split(":"); run(+a[0], +a[1]); }, root);
   };
 })(window);
