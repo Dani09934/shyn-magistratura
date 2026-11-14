@@ -43,9 +43,29 @@
     Store.dueIds().forEach(function (id) { due[id] = 1; }); Store.wrongIds().forEach(function (id) { wrong[id] = 1; });
     var rnd = U.shuffle(D);
     var a = rnd.filter(function (q) { return due[q.id] || wrong[q.id]; }), b = rnd.filter(function (q) { return !seen(q); }), c = rnd;
-    var out = [], ids = {};
-    [a.slice(0, Math.ceil(n / 3)), b, c].forEach(function (L) { L.forEach(function (q) { if (out.length < n && !ids[q.id]) { ids[q.id] = 1; out.push(q); } }); });
-    return out;
+    var out = [], ids = {}, per = {};
+    function tk(q) { return (q.topicFine || q.topic || "").toLowerCase().replace(/[^a-zа-яәғқңөұүһі ]/g, " ").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" "); }
+    function grp(q) { return q.topic || ""; }
+    // Бір негізгі тақырыптан көбі 2 сұрақ, бір нақты тақырыптан көбі 1 — сонда 18 сұрақ кемінде 9 тақырыпты қамтиды
+    [2, 3, 99].forEach(function (cap) {
+      [a.slice(0, Math.ceil(n / 3)), b, c].forEach(function (L) {
+        L.forEach(function (q) {
+          if (out.length >= n || ids[q.id]) return;
+          var g = grp(q), f = "f:" + tk(q);
+          if ((per[g] || 0) >= cap || (cap < 99 && (per[f] || 0) >= 1)) return;
+          ids[q.id] = 1; per[g] = (per[g] || 0) + 1; per[f] = (per[f] || 0) + 1; out.push(q);
+        });
+      });
+    });
+    // Аралас ретпен: бір тақырып қатар тұрмасын
+    var res = [], left = out.slice();
+    while (left.length) {
+      var k = 0, prev = res.length ? grp(res[res.length - 1]) : null;
+      while (k < left.length && grp(left[k]) === prev) k++;
+      if (k >= left.length) k = 0;
+      res.push(left.splice(k, 1)[0]);
+    }
+    return res;
   }
   function nextGroup(s) {
     var G = data().groups[s]; if (!G.length) return null;
@@ -92,6 +112,7 @@
     if (x.k === "mock") return Shyn.startTest(x.scope, "Интенсив · Пробный емтихан (ағылшын)", mock(), { mode: "exam", secPerQ: 60 });
   }
 
+  Shyn._engPickG = function (n) { return pickG(n); };
   Shyn.engIntensive = function () {
     var d = data(), st = { L: stat(d.groups.L.reduce(function (a, g) { return a.concat(g.qs); }, [])), G: stat(d.G), R: stat(d.groups.R.reduce(function (a, g) { return a.concat(g.qs); }, [])) };
     var weakest = ["L", "G", "R"].filter(function (k) { return st[k].pct !== null; }).sort(function (a, b) { return st[a].pct - st[b].pct; })[0];

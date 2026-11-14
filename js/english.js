@@ -31,18 +31,22 @@
     while (E.days[U.dayKey(d)]) { n++; d.setDate(d.getDate() - 1); }
     return n;
   }
-  function isDue(id) { var t = tState(id); return t.lvl > 0 && t.due <= Date.now(); }
+  // Мерзімі келген: меңгерілген (lvl > 0) немесе өтіп, бірақ 80%-ға жетпеген тақырыптар
+  function isDue(id) { var t = tState(id); return (t.lvl > 0 || t.done > 0) && t.due <= Date.now(); }
   function dueTopics() { return ORDER.filter(isDue); }
   function weakItems() { return Object.keys(E.items).filter(function (k) { return E.items[k] > 0; }); }
   function nextTopic() {
-    // Алдымен «өте маңызды», сосын «маңызды», сосын қалғаны — бірақ әр топ ішінде курстағы ретімен.
+    // Жаңа (әлі ашылмаған) тақырыптар: «өте маңызды» → «маңызды» → қалғаны, курс ретімен.
+    // Өтіп, бірақ 80%-ға жетпеген тақырып «Келесі сабақ» болып қайта-қайта шықпайды — ол «Қайталау» бөліміне түседі.
     var pick = null;
     ["r", "y", "g"].some(function (imp) {
-      pick = ORDER.filter(function (id) { return G.topics[id].imp === imp && tState(id).lvl === 0; })[0] || null;
+      pick = ORDER.filter(function (id) { return G.topics[id].imp === imp && tState(id).lvl === 0 && !tState(id).done; })[0] || null;
       return !!pick;
     });
     if (pick) return pick;
-    return ORDER.slice().sort(function (a, b) { return tState(a).lvl - tState(b).lvl; })[0];
+    // Барлығы ашылған: ең төмен деңгейдегісі, бірақ соңғы өткен тақырып емес
+    var rest = ORDER.filter(function (id) { return id !== E.last; });
+    return rest.sort(function (a, b) { return (tState(a).lvl - tState(b).lvl) || (tState(a).due - tState(b).due); })[0] || ORDER[0];
   }
   function itemKey(tid, i) { return tid + "#" + i; }
 
@@ -267,6 +271,7 @@
       s.due = Date.now() + (GAP_DAYS[Math.min(s.lvl, GAP_DAYS.length - 1)] || 1) * 864e5 * (a >= 0.8 ? 1 : 0.34);
       E.topics[tid] = s;
     });
+    if (L.kind === "topic") E.last = L.id;
     addXP(gain);
     var t = L.kind === "topic" ? G.topics[L.id] : null, nxt = nextTopic();
     var mins = Math.max(1, Math.round((Date.now() - L.startedAt) / 60000));

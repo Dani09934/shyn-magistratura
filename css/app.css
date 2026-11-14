@@ -1414,3 +1414,12 @@ kbd { font-family: var(--mono); font-size: .72em; opacity: .75; margin-left: 4px
   body.print-fml .fml-row { break-inside: avoid; padding: 5px 0; }
   body.print-fml .fml-sec { break-inside: auto; margin: 10px 0; }
 }
+
+/* Сұрақты сырғытып ауыстыру анимациясы */
+@keyframes qInR { from { transform: translateX(36px); opacity: .2; } to { transform: none; opacity: 1; } }
+@keyframes qInL { from { transform: translateX(-36px); opacity: .2; } to { transform: none; opacity: 1; } }
+@keyframes qBump { 0%, 100% { transform: none; } 30% { transform: translateX(-10px); } 60% { transform: translateX(8px); } }
+.q.q-in-r { animation: qInR .22s ease-out; }
+.q.q-in-l { animation: qInL .22s ease-out; }
+.quiz__main.q-bump { animation: qBump .3s ease; }
+@media (prefers-reduced-motion: reduce) { .q.q-in-r, .q.q-in-l, .quiz__main.q-bump { animation: none; } }

@@ -397,7 +397,36 @@
     U.$("#leaveBtn").addEventListener("click", function () { persist(); U.toast("Прогресс сақталды — басты беттен жалғастырасыз"); Shyn.go("#/"); });
     U.$("#keysBtn").addEventListener("click", keysHelp);
     drawGrid(); drawQuestion(); drawLive(); startTimer();
+    bindSwipe(U.$("#qwrap"));
   });
+
+  /* Телефонда сұрақты солға/оңға сырғытып ауыстыру: солға — келесі, оңға — алдыңғы.
+     Код блогы, кесте, мәтін өрісі ішінде сырғыту өзінің көлденең айналдыруына қалдырылады. */
+  function bindSwipe(el) {
+    if (!el || !("ontouchstart" in global)) return;
+    var x0 = 0, y0 = 0, t0 = 0, ok = false;
+    el.addEventListener("touchstart", function (e) {
+      if (e.touches.length !== 1) { ok = false; return; }
+      var tg = e.target, scroll = false;
+      for (var n = tg; n && n !== el; n = n.parentElement) {
+        if (/^(TEXTAREA|INPUT|SELECT)$/.test(n.tagName)) { ok = false; return; }
+        if (n.scrollWidth > n.clientWidth + 4 && /auto|scroll/.test(getComputedStyle(n).overflowX)) scroll = true;
+      }
+      ok = !scroll; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+    }, { passive: true });
+    el.addEventListener("touchend", function (e) {
+      if (!ok || !S.test) return; ok = false;
+      var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+      if (Date.now() - t0 > 700 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+      var to = S.index + (dx < 0 ? 1 : -1);
+      if (to < 0 || to >= S.test.questions.length) { el.classList.remove("q-bump"); void el.offsetWidth; el.classList.add("q-bump"); return; }
+      goto(to);
+      var a = U.$("article.q", el); if (a) { a.classList.add(dx < 0 ? "q-in-r" : "q-in-l"); }
+      try { if (!localStorage.getItem("shyn_swipe_ok")) { localStorage.setItem("shyn_swipe_ok", "1"); } } catch (er) {}
+    }, { passive: true });
+    var hinted; try { hinted = localStorage.getItem("shyn_swipe_ok"); } catch (er) { hinted = 1; }
+    if (!hinted) setTimeout(function () { U.toast("Кеңес: келесі сұраққа өту үшін экранды солға сырғытыңыз"); }, 900);
+  }
   function keysHelp() {
     Shyn.modal('<h2 class="modal__title">Пернетақта</h2><dl class="keys">' +
       '<dt>A – H</dt><dd>жауапты таңдау</dd><dt>Enter</dt><dd>тексеру / келесі сұрақ</dd><dt>← →</dt><dd>алдыңғы / келесі</dd>' +

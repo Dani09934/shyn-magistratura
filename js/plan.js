@@ -105,8 +105,17 @@
     }
     var due = {}; Store.dueIds().forEach(function (id) { due[id] = 1; });
     var wrong = {}; Store.wrongIds().forEach(function (id) { wrong[id] = 1; });
-    return all.map(function (q) { var L = Store.learning(q.id); return { q: q, s: (wrong[q.id] ? 60 : 0) + (due[q.id] ? 40 : 0) + (L ? 0 : 25) + Math.random() * 20 }; })
-      .sort(function (a, b) { return b.s - a.s; }).slice(0, n).map(function (x) { return x.q; });
+    var ranked = all.map(function (q) { var L = Store.learning(q.id); return { q: q, s: (wrong[q.id] ? 60 : 0) + (due[q.id] ? 40 : 0) + (L ? 0 : 25) + Math.random() * 20 }; })
+      .sort(function (a, b) { return b.s - a.s; }).map(function (x) { return x.q; });
+    // Бір нақты тақырып қатарынан қайталанбасын: нақты тақырыптар бойынша кезекпен (round-robin) аламыз
+    var buckets = {}, order = [];
+    ranked.forEach(function (q) { var k = (q.topicFine || q.topic || "").split(/[·:(]/)[0].trim().toLowerCase(); if (!buckets[k]) { buckets[k] = []; order.push(k); } buckets[k].push(q); });
+    var out = [];
+    while (out.length < n && order.length) {
+      order = order.filter(function (k) { return buckets[k].length; });
+      order.forEach(function (k) { if (out.length < n && buckets[k].length) out.push(buckets[k].shift()); });
+    }
+    return out;
   }
   function run(d, i) {
     var k = DAYS[d - 1].tasks[i][0], label = "Жоспар · " + d + "-күн · " + DAYS[d - 1].tasks[i][1], id = scope(d, i), m;
