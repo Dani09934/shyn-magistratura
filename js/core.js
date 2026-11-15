@@ -69,6 +69,7 @@
       [/./, "Алгоритм негіздері"]],
     db: [
       [/транзакц|бұғат|қалпына|резерв|параллель/, "Транзакциялар"], [/индекс|оңтайланд/, "Индекстер және оңтайландыру"],
+      [/sql server|архитектур/, "ДҚБЖ: архитектура, түрлері"],
       [/нормал|қалыпты|функционалдық тәуел|аномал/, "Нормализация"],
       [/ddl|dml|insert|update|delete|alter|grant|шектеу|деректер тип|describe|командалар|деректермен амал/, "SQL: DDL, DML, құқықтар"],
       [/sql|трассиров|предикат|көрініс|сұраныс/, "SQL: іріктеу сұраныстары"],
@@ -317,9 +318,10 @@
         return wrong === 0 && hits === k ? { points: 1, max: 1, state: "correct" } : { points: 0, max: 1, state: "wrong" };
       }
       if (!sel.length) return { points: 0, max: 2, state: "empty" };
-      if (wrong >= 2) return { points: 0, max: 2, state: "wrong" };
-      if (wrong === 0 && hits === k) return { points: 2, max: 2, state: "correct" };
-      if (hits >= Math.max(k - 1, 1)) return { points: 1, max: 2, state: "partial" };
+      // ҰТО ережесі: қате = артық таңдалған + белгіленбей қалған дұрыс жауап; 0 қате — 2 балл, 1 қате — 1 балл, 2+ — 0
+      var errors = wrong + (k - hits);
+      if (errors === 0) return { points: 2, max: 2, state: "correct" };
+      if (errors === 1) return { points: 1, max: 2, state: "partial" };
       return { points: 0, max: 2, state: "wrong" };
     },
     test: function (qs, answers) {

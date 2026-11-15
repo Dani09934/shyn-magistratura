@@ -98,7 +98,7 @@
     return T;
   }
   Shyn.engInt = function () {
-    if (!S.start) return { started: false, left: 0, text: "КТ форматындағы 21 күндік жоспар: грамматика, тыңдалым, оқылым" };
+    if (!S.start) return { started: false, left: 0, text: "Күнделікті 30–40 минут: грамматика, тыңдалым, оқылым — КТ форматында" };
     var T = tasks(), left = T.filter(function (x) { return !x.done; }).length;
     return { started: true, left: left, text: dayNo() + "-күн · бүгін " + (T.length - left) + " / " + T.length + " тапсырма орындалды" + (left ? "" : ". Керемет!") };
   };

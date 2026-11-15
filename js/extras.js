@@ -169,6 +169,11 @@
 
   /* ================= Сұрақтар қоры (іздеу) ================= */
   var B = { q: "", subject: "", topic: "", status: "", limit: 30 };
+  // Іздеу: латынша терминдер мен «НФ/ҚФ» жазылуын бірдей санау
+  var ALIAS = [[/dijkstra|дийкстр|дейкстр/g, "дейкстра"], [/bellman|форд-беллман|беллман/g, "беллман"], [/floyd|флойд/g, "флойд"], [/prim\b|прима\b/g, "прим"],
+    [/kruskal|крускал/g, "крускал"], [/(\d)\s*(нф|қф|nf)/g, "$1нф"], [/hash|хэш/g, "хеш"], [/heap/g, "үйме"], [/stack/g, "стек"], [/queue/g, "кезек"],
+    [/binary search|бинарлы іздеу|екілік іздеу/g, "екілік іздеу"], [/normal form|қалыпты форма/g, "нф"], [/join/g, "join"], [/knapsack|рюкзак|қоржын/g, "қоржын"]];
+  function norm(x) { x = String(x || "").toLowerCase().replace(/ё/g, "е"); ALIAS.forEach(function (a) { x = x.replace(a[0], a[1]); }); return x; }
   Shyn.route("bank", function () {
     var all = Shyn.allQuestions().filter(function (q) { return !q.missing; });
     view.innerHTML = '<header class="page-head"><h1>Сұрақтар қоры</h1><p class="muted">Барлық нұсқалардағы ' + all.length + ' сұрақ бойынша іздеу. Табылған сұрақтардан бірден жаттығу құрастыруға болады.</p></header>' +
@@ -181,7 +186,7 @@
     U.$("#bT").value = B.topic; U.$("#bSt").value = B.status;
     var found = [];
     function run() {
-      var s = B.q.trim().toLowerCase(), wrong = {}; Store.wrongIds().forEach(function (id) { wrong[id] = 1; });
+      var s = norm(B.q.trim()), sq = s ? s.split(/\s+/).filter(Boolean) : [], wrong = {}; Store.wrongIds().forEach(function (id) { wrong[id] = 1; });
       found = all.filter(function (q) {
         if (B.subject && q._subject !== B.subject) return false;
         if (B.topic && q.topic !== B.topic) return false;
@@ -190,13 +195,15 @@
         if (B.status === "wrong" && !wrong[q.id]) return false;
         if (B.status === "right" && !(L && L.lastState === "correct")) return false;
         if (B.status === "flag" && !q.disputed) return false;
-        if (s) { var t = (q.q + " " + q.opts.map(function (o) { return o.t; }).join(" ") + " " + q.topic + " " + (q.code || "")).toLowerCase(); if (t.indexOf(s) < 0) return false; }
+        if (s) { var t = norm(q.q + " " + q.opts.map(function (o) { return (o.t || "") + " " + (o.code || ""); }).join(" ") + " " + q.topic + " " + (q.topicFine || "") + " " + (q.code || "")); if (sq.some(function (w) { return t.indexOf(w) < 0; })) return false; }
         return true;
       });
       U.$("#bCount").textContent = "Табылды: " + found.length;
       U.$("#bList").innerHTML = found.slice(0, B.limit).map(function (q) {
         return '<details class="bq"><summary><span class="bq__src">' + Shyn.SUBJECT[q._subject].short + " " + q._variant + "/" + q.n + '</span><span class="bq__q">' + Shyn.fmt(q.q.length > 220 ? q.q.slice(0, 220) + "…" : q.q) + '</span><span class="tag">' + esc(q.topic) + '</span></summary>' +
-          (q.q.length > 220 ? '<div class="q__text">' + Shyn.fmt(q.q) + '</div>' : "") + Shyn.code(q.code) +
+          (q.q.length > 220 ? '<div class="q__text">' + Shyn.fmt(q.q) + '</div>' : "") +
+          (q.passage ? '<details class="rv__pass"><summary>Мәтінді көрсету (оқылым)</summary><div class="rv__ptext">' + Shyn.fmt(q.passage) + '</div></details>' : "") +
+          (q.audio && !q.passage ? '<audio controls preload="none" src="' + esc(q.audio) + '"></audio>' : "") + Shyn.code(q.code) +
           '<ul class="rv__opts">' + q.opts.map(function (o) { var ok = q.correct.indexOf(o.l) >= 0; return '<li class="' + (ok ? "is-ok" : "") + '"><b>' + o.l + '</b> ' + Shyn.fmt(o.t) + Shyn.code(o.code) + '</li>'; }).join("") + '</ul>' +
           '<div class="explain__t">' + Shyn.fmt(q.ex) + '</div></details>';
       }).join("") || '<p class="empty">Ештеңе табылмады. Сөзді қысқартып немесе сүзгіні алып көріңіз.</p>';
@@ -329,7 +336,7 @@
         '<div class="set"><div><h3>Прогресс файлы</h3><p class="muted">Басқа құрылғыға немесе браузерге көшіру үшін экспорттап, сол жерде импорттаңыз.</p></div><div class="inline"><button class="btn btn--line" id="sExp">Экспорт</button><label class="btn btn--line">Импорт<input type="file" accept="application/json,.json" id="sImp" hidden></label></div></div>' +
         '<div class="set set--danger"><div><h3>Барлық прогресті өшіру</h3><p class="muted">Нәтижелер, қателер, карточкалар және тарих өшіріледі. Қайтару мүмкін емес.</p></div><button class="btn btn--no" id="sReset">Өшіру</button></div>' +
       '</section>' +
-      '<section class="block"><h2>Жоба туралы</h2><p class="muted">Шың — магистратураға кешенді тестілеуге дайындалуға арналған офлайн жаттықтырғыш. Интернетсіз де, тіркелусіз де жұмыс істейді: прогресс тек сіздің браузеріңізде. Балл ресми ереже бойынша есептеледі: алгоритмдерде бір жауап — 1 балл, деректер қорында толық дұрыс жиын — 2 балл, ішінара — 1 балл.</p></section>';
+      '<section class="block"><h2>Жоба туралы</h2><p class="muted">Шың — магистратураға кешенді тестілеуге дайындалуға арналған офлайн жаттықтырғыш. Интернетсіз де, тіркелусіз де жұмыс істейді: прогресс тек сіздің браузеріңізде. Балл ресми ереже бойынша есептеледі: алгоритмдерде бір жауап — 1 балл, деректер қорында қатесіз — 2 балл, бір қате — 1 балл, екі және одан көп қате — 0.</p></section>';
     U.$("#sDate").addEventListener("change", function (e) { Store.set("examDate", e.target.value); U.toast(e.target.value ? "Емтихан күні сақталды" : "Емтихан күні өшірілді"); });
     U.on("[data-th]", "click", function (e, el) { Store.set("theme", el.getAttribute("data-th")); Shyn.applyTheme(); Shyn._keepScroll = true; Shyn.render(); }, view);
     U.on("[data-fs]", "click", function (e, el) { Store.set("fontScale", +el.getAttribute("data-fs")); Shyn.applyTheme(); Shyn._keepScroll = true; Shyn.render(); }, view);

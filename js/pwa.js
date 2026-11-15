@@ -8,6 +8,8 @@
   var isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   var isAndroid = /android/i.test(ua);
   function standalone() { return (global.matchMedia && global.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true; }
+  // Баннер алғашқы кірісте емес, екінші кірістен бастап көрсетіледі (бірінші экранды жаппасын)
+  var visits = 0; try { visits = +(sessionStorage.getItem("shyn_v") || 0) || ((+localStorage.getItem("shyn_visits") || 0) + 1); sessionStorage.setItem("shyn_v", visits); localStorage.setItem("shyn_visits", visits); } catch (e) { visits = 2; }
   function dismissed() { try { return localStorage.getItem("shyn_install_dismissed") === "1"; } catch (e) { return false; } }
   function setDismissed() { try { localStorage.setItem("shyn_install_dismissed", "1"); } catch (e) {} }
 
@@ -36,7 +38,8 @@
     var hide = standalone();
     U.$$('[data-r="install"]').forEach(function (a) { a.hidden = hide; });
     var bn = document.getElementById("installBanner");
-    if (bn) bn.hidden = hide || dismissed() || document.body.getAttribute("data-route") !== "home" || !(deferred || isIOS || isAndroid);
+    if (bn) bn.hidden = hide || dismissed() || visits < 2 || document.body.getAttribute("data-route") !== "home" || !(deferred || isIOS || isAndroid);
+    document.body.classList.toggle("has-ibanner", !!bn && !bn.hidden);
   }
   Shyn.pwaRefresh = refresh;
 

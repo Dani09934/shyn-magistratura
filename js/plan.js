@@ -54,7 +54,13 @@
     if (ex) {
       var left = daysBetween(today, ex);
       if (left <= 0) return { day: left === 0 ? N + 1 : N + 2, left: left, mode: "exam" };
-      if (left <= N) return { day: N + 1 - left, left: left, mode: "exam" };
+      if (left <= N) {
+        // Емтиханға 15 күннен аз қалса, жоспар қалған күндерге сығылады: бір күнге бірнеше жоспар күні келуі мүмкін
+        if (!P.anchor || P.anchor.ex !== ex) { P.anchor = { ex: ex, date: today, left: left }; save(); }
+        var T = Math.max(1, Math.min(N, P.anchor.left)), k = Math.max(0, Math.min(T - 1, daysBetween(P.anchor.date, today)));
+        var from = Math.floor(k * N / T) + 1, to = Math.max(from, Math.floor((k + 1) * N / T));
+        return { day: to, from: from, left: left, mode: "exam", T: T };
+      }
       if (P.start) return { day: Math.min(N, daysBetween(P.start, today) + 1), left: left, mode: "manual" };
       return { day: 0, left: left, mode: "exam" };
     }
@@ -86,8 +92,9 @@
     scored.forEach(function (x) { if (out.length >= n) return; if (x.q.passage || x.q.audio) return; var t = x.q.topic; if ((per[t] = (per[t] || 0) + 1) <= 6) out.push(x.q); });
     return out;
   }
-  function randomSet(sub) {
-    var sets = Shyn.allSets().filter(function (s) { return s.subject === sub && s.questions.length >= 20; });
+  function randomSet(sub, exact) {
+    var sets = Shyn.allSets().filter(function (s) { return s.subject === sub && (exact ? s.questions.length === exact : s.questions.length >= 20); });
+    if (!sets.length) sets = Shyn.allSets().filter(function (s) { return s.subject === sub && s.questions.length >= 20; });
     var tried = {}; Store.history().forEach(function (r) { tried[r.key] = 1; });
     var fresh = sets.filter(function (s) { return !tried[s.key]; });
     var list = fresh.length ? fresh : sets;
@@ -159,9 +166,9 @@
     if ((m = k.match(/^cheat:(.+)$/))) { P.done[id] = Date.now(); save(); Shyn.go("#/cheats/" + m[1]); return; }
     if (k === "full") {
       var ex = Shyn.composeExam(["english", "fundamentals", "algo", "db"]);
-      return Shyn.startTest(id, label + " (" + ex.picked.join(", ") + ")", ex.qs, { mode: "exam", secPerQ: 72 });
+      return Shyn.startTest(id, label + " (" + ex.picked.join(", ") + ")", ex.qs, { mode: "exam", seconds: Shyn.examSeconds(ex.qs) });
     }
-    if (k === "eng") { var e = randomSet("english"); return Shyn.startTest(id, label + " · нұсқа " + e.variant, e.questions, { mode: "exam", secPerQ: 60 }); }
+    if (k === "eng") { var e = randomSet("english", 50); return Shyn.startTest(id, label + " · нұсқа " + e.variant, e.questions.filter(function (q) { return !q.missing; }).slice(0, 50), { mode: "exam", secPerQ: 72 }); }
     if (k === "tgo") { var t = randomSet("fundamentals"); return Shyn.startTest(id, label + " · нұсқа " + t.variant, t.questions, { mode: "practice" }); }
     if ((m = k.match(/^t:(\w+):(.+)$/))) {
       var tq = topicPool(m[1], m[2], 25);
@@ -187,11 +194,22 @@
   }
 
   /* ---------- Көрініс ---------- */
+  var curFrom = 0;
+  function calDate(d) {
+    var ex = Store.settings.examDate, x;
+    if (P.anchor && P.anchor.ex === ex) {
+      var T = Math.max(1, Math.min(N, P.anchor.left)), k = 0;
+      while (k < T - 1 && Math.max(Math.floor(k * N / T) + 1, Math.floor((k + 1) * N / T)) < d) k++;
+      x = new Date(P.anchor.date + "T12:00:00"); x.setDate(x.getDate() + k);
+    } else { x = new Date(ex + "T12:00:00"); x.setDate(x.getDate() - (N + 1 - d)); }
+    return x.getDate() + " " + U.MONTHS[x.getMonth()];
+  }
   function dayHTML(d, cur, mode, open) {
     var D = DAYS[d - 1], done = D.tasks.filter(function (x, i) { return isDone(d, i); }).length, all = D.tasks.length;
-    var st = d < cur ? (done === all ? "done" : "missed") : d === cur ? "today" : "next";
+    var cf = curFrom || cur;
+    var st = d < cf ? (done === all ? "done" : "missed") : d <= cur ? (done === all ? "done" : "today") : "next";
     var date = "";
-    if (Store.settings.examDate && mode !== "manual") { var x = new Date(Store.settings.examDate + "T12:00:00"); x.setDate(x.getDate() - (N + 1 - d)); date = x.getDate() + " " + U.MONTHS[x.getMonth()]; }
+    if (Store.settings.examDate && mode !== "manual") date = calDate(d);
     return '<li class="pday pday--' + st + '"><details' + (open ? " open" : "") + '><summary><span class="pday__n">' + d + '</span>' +
       '<span class="pday__t"><b>' + esc(D.t) + '</b><small>' + (date ? date + ", " : "") + done + " / " + all + ' орындалды</small></span>' +
       '<span class="pday__st">' + (st === "done" ? "Дайын" : st === "today" ? "Бүгін" : st === "missed" ? "Қалып қойды" : "") + '</span></summary>' +
@@ -215,7 +233,11 @@
         '<div class="inline"><a class="btn btn--line" href="#/cheats/exam">Емтихан күнгі ережелер</a>' + (c.day === N + 2 ? '<button class="btn btn--primary" id="pGo">Қайта бастау</button>' : "") + '</div></section>';
     } else intro = "";
     var cur = c.day >= 1 && c.day <= N ? c.day : 0;
-    var list = '<ol class="pdays">' + DAYS.map(function (x, i) { return dayHTML(i + 1, cur, c.mode, i + 1 === cur || (!cur && i === 0)); }).join("") + '</ol>';
+    curFrom = cur ? (c.from || cur) : 0;
+    var firstOpen = 0; for (var dd = curFrom; dd && dd <= cur; dd++) { if (DAYS[dd - 1].tasks.some(function (x, i) { return !isDone(dd, i); })) { firstOpen = dd; break; } }
+    if (c.T && c.T < N && cur) intro = '<section class="block pnote"><p><b>Емтиханға ' + c.left + ' күн қалды</b> — 15 күндік жоспар ' + c.T + ' күнге сығылды. ' +
+      (c.from < c.day ? 'Бүгін ' + c.from + '–' + c.day + '-күндердің тапсырмалары.' : 'Бүгін ' + c.day + '-күн.') + ' Бастапқы толық сынақ (1-күн) әрқашан қолжетімді.</p></section>' + intro;
+    var list = '<ol class="pdays">' + DAYS.map(function (x, i) { return dayHTML(i + 1, cur, c.mode, i + 1 === (firstOpen || cur) || (!cur && i === 0)); }).join("") + '</ol>';
     var calBtn = (c.day >= 1 && c.day <= N) ? '<div class="pcal"><button class="btn btn--line" id="pCal">Күнтізбеге еске салу қосу</button><span class="muted">Телефон күнтізбесі күн сайын белгілі уақытта сол күннің тақырыбын еске салады.</span></div>' : "";
     view.innerHTML = head + intro + calBtn + list + (P.start && c.mode === "manual" ? '<p class="muted small pfoot">Жоспар ' + (function (x) { return x.getDate() + " " + U.MONTHS[x.getMonth()]; })(new Date(P.start + "T12:00:00")) + ' басталған. <button class="linkbtn" id="pReset">Басынан бастау</button></p>' : "");
     var go = U.$("#pGo"); if (go) go.addEventListener("click", function () { P.start = dayKey(); P.done = {}; save(); Shyn._keepScroll = true; Shyn.render(); });
@@ -232,11 +254,13 @@
       if (c.day === 0 && c.left && c.left <= 30) return '<section class="block pmini"><div><h2>Емтиханға ' + c.left + ' күн</h2><p class="muted">15 күндік интенсив ' + (c.left - N) + ' күннен кейін басталады. Қазір де бастауға болады.</p></div><a class="btn btn--line" href="#/plan">Жоспарды көру</a></section>';
       return "";
     }
-    var D = DAYS[c.day - 1], next = -1;
-    D.tasks.forEach(function (x, i) { if (next < 0 && !isDone(c.day, i)) next = i; });
-    return '<section class="block pmini"><div><h2>' + c.day + '-күн / ' + N + ' · ' + esc(D.t) + '</h2><p class="muted">' +
+    var day = c.day, next = -1;
+    for (var dd = c.from || c.day; dd <= c.day && next < 0; dd++) DAYS[dd - 1].tasks.forEach(function (x, i) { if (next < 0 && !isDone(dd, i)) { next = i; day = dd; } });
+    var D = DAYS[day - 1];
+    return '<section class="block pmini"><div><h2>' + day + '-күн / ' + N + ' · ' + esc(D.t) + '</h2><p class="muted">' +
+      (c.T && c.T < N ? "Емтиханға " + c.left + " күн: жоспар " + c.T + " күнге сығылған. " : "") +
       (next < 0 ? "Бүгінгі жоспар орындалды. Ертең жалғастыр." : "Келесі: " + esc(D.tasks[next][1])) + '</p></div>' +
-      '<div class="inline">' + (next >= 0 ? '<button class="btn btn--primary" data-prun="' + c.day + ':' + next + '">Бастау</button>' : "") + '<a class="btn btn--line" href="#/plan">Жоспар</a></div></section>';
+      '<div class="inline">' + (next >= 0 ? '<button class="btn btn--primary" data-prun="' + day + ':' + next + '">Бастау</button>' : "") + '<a class="btn btn--line" href="#/plan">Жоспар</a></div></section>';
   };
   Shyn.planBind = function (root) {
     var st = root.querySelector("#pmStart"); if (st) st.addEventListener("click", function () { P.start = dayKey(); P.done = {}; save(); Shyn.go("#/plan"); });

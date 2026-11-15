@@ -26,7 +26,8 @@
   function render() {
     var h = (location.hash || "#/").slice(2).split("/");
     var name = h[0] || "home";
-    if (name !== "quiz") stopTimer();
+    if (name !== "quiz" && !(S.timer && S.test && S.test.mode === "exam")) stopTimer();
+    examPill(name);
     if (name === "quiz" && !S.test) name = "home";
     if (name === "result" && !S.lastResult) name = "home";
     var fn = routes[name] || routes.home;
@@ -89,6 +90,8 @@
   function langLabel(set) { return set.origLang === "en" ? "EN" : set.origLang === "kz" ? "KZ түпнұсқа" : "KZ аударма"; }
 
   /* ================= Тестті бастау ================= */
+  function saveShuffle() { try { localStorage.setItem("shyn_shuffle", JSON.stringify({ q: S.shuffleQ, o: S.shuffleO })); } catch (e) {} }
+  try { var _sh = JSON.parse(localStorage.getItem("shyn_shuffle") || "null"); if (_sh) { S.shuffleQ = !!_sh.q; S.shuffleO = !!_sh.o; } } catch (e) {}
   function prepare(list, keepOrder) {
     var qs = S.shuffleQ && !keepOrder ? U.shuffle(list) : list.slice();
     return qs.map(function (q) {
@@ -127,7 +130,7 @@
       S.test = { scope: scope, title: title, mode: mode, questions: prepare(list) };
       S.answers = {}; S.conf = {}; S.reasons = {}; S.flags = {}; S.checked = {}; S.index = 0;
       S.startedAt = Date.now();
-      S.remaining = mode === "exam" ? Math.round(S.test.questions.length * (opts.secPerQ || 72)) : 0;
+      S.remaining = mode === "exam" ? Math.round(opts.seconds || S.test.questions.length * (opts.secPerQ || 72)) : 0;
     }
     S.test.mode = mode;
     Shyn.go("#/quiz");
@@ -177,13 +180,17 @@
       if (!sets.length) return;
       var need = Shyn.EXAM_SIZE[sub] || 30;
       // Толық нұсқа (кемінде need сұрақ), көбіне Тест орталығы нұсқасы; жоқ болса — аралас іріктеме
-      var full = sets.filter(function (s) { return s.questions.filter(function (q) { return !q.missing; }).length >= need; });
+      var live = function (s) { return s.questions.filter(function (q) { return !q.missing; }); };
+      var full = sets.filter(function (s) { return live(s).length === need; });
+      if (!full.length) full = sets.filter(function (s) { return live(s).length >= need; });
       var tc = full.filter(function (s) { return s.source === "tc"; });
       var pool = Math.random() < 0.6 && tc.length ? tc : full;
       if (pool.length) {
         var set = pool[Math.floor(Math.random() * pool.length)];
         picked.push(Shyn.SUBJECT[sub].short + " " + set.variant);
-        qs = qs.concat(set.questions.filter(function (q) { return !q.missing; }).slice(0, need));
+        var lq = live(set), cut = Math.min(need, lq.length);
+        while (cut < lq.length && lq[cut].passage && lq[cut].passage === lq[cut - 1].passage) cut++; // мәтін ортасынан кесілмесін
+        qs = qs.concat(lq.slice(0, cut));
       } else {
         picked.push(Shyn.SUBJECT[sub].short + " (аралас)");
         qs = qs.concat(U.shuffle(Shyn.allQuestions().filter(function (q) { return q._subject === sub && !q.missing && !q.passage && !q.audio; })).slice(0, need));
@@ -191,10 +198,13 @@
     });
     return { qs: qs, picked: picked };
   };
+  // Ресми уақыт: алгоритм 30 сұрақ — 60 мин, ДҚ 20 сұрақ — 50 мин; ағылшын мен ТГО — 1,2 мин/сұрақ
+  Shyn.EXAM_SEC = { english: 72, fundamentals: 72, algo: 120, db: 150 };
+  Shyn.examSeconds = function (qs) { return qs.reduce(function (t, q) { return t + (Shyn.EXAM_SEC[q._subject] || 72); }, 0); };
   Shyn.launchExam = function (subjects, secPerQ) {
     var r = Shyn.composeExam(subjects);
     if (!r.qs.length) { U.toast("Кемінде бір пәнді таңдаңыз"); return; }
-    startTest("exam:" + subjects.join(",") + ":" + Date.now(), "Емтихан · " + r.picked.join(", "), r.qs, { mode: "exam", secPerQ: secPerQ });
+    startTest("exam:" + subjects.join(",") + ":" + Date.now(), "Емтихан · " + r.picked.join(", "), r.qs, secPerQ ? { mode: "exam", secPerQ: secPerQ } : { mode: "exam", seconds: Shyn.examSeconds(r.qs) });
   };
 
   /* ================= Басты бет ================= */
@@ -286,7 +296,7 @@
     Shyn.modal('<h2 class="modal__title">Емтихан режимі</h2>' +
       '<p class="muted">Нақты КТ құрылымы: ағылшын 50, ОДТ 30, алгоритмдер 30, деректер қоры 20 сұрақ. Әр пәнге кездейсоқ толық нұсқа алынады, таймер жүреді, түсіндірмелер соңында ашылады.</p>' +
       '<div class="stack">' + rows + '</div>' +
-      '<label class="lbl">Бір сұраққа уақыт<select id="exPace" class="field"><option value="72">1,2 минут (стандарт)</option><option value="60">1 минут (қатаң)</option><option value="90">1,5 минут (жайлы)</option></select></label>' +
+      '<label class="lbl">Бір сұраққа уақыт<select id="exPace" class="field"><option value="0">Ресми уақыт (алгоритм 60 мин, ДҚ 50 мин)</option><option value="72">1,2 минут әр сұраққа</option><option value="60">1 минут (қатаң)</option><option value="90">1,5 минут (жайлы)</option></select></label>' +
       '<div class="modal__actions"><button class="btn btn--primary" id="exGo">Емтиханды бастау</button><button class="btn btn--ghost" data-close>Болдырмау</button></div>');
     U.$("#exGo").addEventListener("click", function () {
       var subs = U.$$(".exSub:checked", modalBody).map(function (c) { return c.value; });
@@ -340,8 +350,8 @@
       '<div class="variants">' + (rows || '<p class="empty">Таңдалған сүзгілерге сәйкес нұсқа жоқ. Сүзгінің бірін қосыңыз.</p>') + '</div>';
 
     U.on("[data-mode]", "click", function (e, el) { S.mode = el.getAttribute("data-mode"); Shyn._keepScroll = true; render(); }, view);
-    U.$("#shQ").addEventListener("change", function (e) { S.shuffleQ = e.target.checked; });
-    U.$("#shO").addEventListener("change", function (e) { S.shuffleO = e.target.checked; });
+    U.$("#shQ").addEventListener("change", function (e) { S.shuffleQ = e.target.checked; saveShuffle(); });
+    U.$("#shO").addEventListener("change", function (e) { S.shuffleO = e.target.checked; saveShuffle(); });
     U.on(".chip", "click", function (e, el) {
       var g = F[el.getAttribute("data-g")], v = el.getAttribute("data-v"), i = g.indexOf(v);
       if (i >= 0) g.splice(i, 1); else g.push(v);
@@ -362,21 +372,36 @@
       meta: { title: S.test.title, scope: S.test.scope, mode: S.test.mode, order: S.test.questions.map(function (q) { return q.id; }), optOrder: optOrder }
     });
   }
+  // Емтихан таймері нақты уақытпен санайды (телефон ұйықтаса да) және басқа бетке өткенде тоқтамайды
   function startTimer() {
     stopTimer();
-    var el = U.$("#timer"); if (!el) return;
+    if (!U.$("#timer")) return;
+    S.deadline = Date.now() + S.remaining * 1000;
+    var n = 0;
     function tick() {
+      var el = U.$("#timer");
       if (S.test.mode === "exam") {
-        S.remaining--;
-        el.textContent = U.fmtTime(S.remaining);
-        el.classList.toggle("is-warn", S.remaining <= 300);
-        if (S.remaining % 5 === 0) persist();
-        if (S.remaining <= 0) { stopTimer(); finish(true); }
-      } else el.textContent = U.fmtTime((Date.now() - S.startedAt) / 1000);
+        S.remaining = Math.max(0, Math.round((S.deadline - Date.now()) / 1000));
+        if (el) { el.textContent = U.fmtTime(S.remaining); el.classList.toggle("is-warn", S.remaining <= 300); }
+        var pill = document.getElementById("examPill");
+        if (pill) pill.querySelector("b").textContent = U.fmtTime(S.remaining);
+        if (++n % 5 === 0) persist();
+        if (S.remaining <= 0) { stopTimer(); if (Shyn._route !== "quiz") location.hash = "#/quiz"; finish(true); }
+      } else if (el) el.textContent = U.fmtTime((Date.now() - S.startedAt) / 1000);
     }
     tick(); S.timer = setInterval(tick, 1000);
   }
-  function stopTimer() { if (S.timer) { clearInterval(S.timer); S.timer = null; } }
+  function stopTimer() { if (S.timer) { clearInterval(S.timer); S.timer = null; } examPill(""); }
+  function examPill(route) {
+    var p = document.getElementById("examPill"), on = route && route !== "quiz" && S.timer && S.test && S.test.mode === "exam";
+    if (!on) { if (p) p.remove(); return; }
+    if (!p) {
+      p = document.createElement("a"); p.id = "examPill"; p.className = "exampill"; p.href = "#/quiz";
+      p.innerHTML = '⏱ Емтихан жүріп жатыр: <b></b> · оралу';
+      document.body.appendChild(p);
+    }
+    p.querySelector("b").textContent = U.fmtTime(S.remaining);
+  }
 
   Shyn.route("quiz", function () {
     var t = S.test;
@@ -394,7 +419,7 @@
           '<button class="btn btn--ghost btn--block" id="leaveBtn">Кейін жалғастыру</button></aside></div>' +
       '</div>';
     U.$("#finishBtn").addEventListener("click", confirmFinish);
-    U.$("#leaveBtn").addEventListener("click", function () { persist(); U.toast("Прогресс сақталды — басты беттен жалғастырасыз"); Shyn.go("#/"); });
+    U.$("#leaveBtn").addEventListener("click", function () { stopTimer(); persist(); U.toast("Прогресс сақталды — басты беттен жалғастырасыз"); Shyn.go("#/"); });
     U.$("#keysBtn").addEventListener("click", keysHelp);
     drawGrid(); drawQuestion(); drawLive(); startTimer();
     bindSwipe(U.$("#qwrap"));
@@ -425,7 +450,10 @@
       try { if (!localStorage.getItem("shyn_swipe_ok")) { localStorage.setItem("shyn_swipe_ok", "1"); } } catch (er) {}
     }, { passive: true });
     var hinted; try { hinted = localStorage.getItem("shyn_swipe_ok"); } catch (er) { hinted = 1; }
-    if (!hinted) setTimeout(function () { U.toast("Кеңес: келесі сұраққа өту үшін экранды солға сырғытыңыз"); }, 900);
+    if (!hinted && matchMedia("(pointer: coarse)").matches) { // кеңес бір-ақ рет көрсетіледі
+      try { localStorage.setItem("shyn_swipe_ok", "1"); } catch (er) {}
+      setTimeout(function () { if (Shyn._route === "quiz") U.toast("Кеңес: келесі сұраққа өту үшін экранды солға сырғытыңыз"); }, 900);
+    }
   }
   function keysHelp() {
     Shyn.modal('<h2 class="modal__title">Пернетақта</h2><dl class="keys">' +
@@ -497,7 +525,7 @@
       (q.passage ? '<details class="passage"' + (q.audio || (/^Тыңдалым/.test(q.topic || "") && Shyn.tts && Shyn.tts.ok()) ? "" : " open") + '><summary>' + (/^Тыңдалым/.test(q.topic || "") ? (q.audio ? "Транскрипт (алдымен аудионы тыңдап көріңіз)" : "Тыңдалым мәтіні (транскрипт)") : "Тапсырмаға мәтін") + '</summary><div class="passage__t">' + Shyn.fmt(q.passage) + '</div></details>' : "") +
       (q.audio ? '<div class="audio"><span>Аудиожазба — жауап осы жазба бойынша анықталады</span><audio controls preload="none" src="' + encodeURI(q.audio) + '"></audio></div>' : "") +
       '<div class="q__text">' + Shyn.fmt(q.q) + '</div>' + Shyn.code(q.code) +
-      '<p class="q__hint">' + (q.multi ? "Бір немесе бірнеше дұрыс жауапты таңдаңыз (үштен аспайды). Толық жиын — 2 балл, ішінара — 1 балл." : "Бір жауапты таңдаңыз.") + '</p>' +
+      '<p class="q__hint">' + (q.multi ? "Бір немесе бірнеше дұрыс жауапты таңдаңыз (үштен аспайды). Қатесіз — 2 балл, бір қате (артық не жетпей қалған жауап) — 1 балл." : "Бір жауапты таңдаңыз.") + '</p>' +
       '<div class="opts">' + opts + '</div>' + conf + (done ? explainHTML(q) : "") + nav + '</article>';
     bindQ(q);
   }
@@ -624,6 +652,11 @@
     view.innerHTML =
       '<section class="result">' +
         '<div class="result__score">' + ring(pct, 168, tone(pct)) + '<div class="result__pct"><b>' + pct + '%</b><span>' + sc.got + " / " + sc.max + ' балл</span></div></div>' +
+        (function () { // жаттығуда ашылмаған сұрақтар пайызды төмендетпесін: жауап берілгендер бойынша да көрсетеміз
+          if (t.mode !== "practice" || !sc.empty || sc.empty === total) return "";
+          var a = Score.test(t.questions.filter(function (q) { return (R.answers[q.id] || []).length; }), R.answers);
+          return '<p class="result__ans muted">Жауап берілген ' + (total - sc.empty) + ' сұрақ бойынша: <b>' + (a.max ? Math.round(a.got / a.max * 100) : 0) + '%</b></p>';
+        })() +
         '<div class="result__info">' + (R.fromHistory ? '<p class="hist-note"><a class="link" href="#/history">← Тесттер тарихы</a> · ' + U.fmtDate(R.rec.at) + ' · ' + (R.rec.mode === "exam" ? "емтихан" : "жаттығу") + '</p>' : "") + (R.auto ? '<p class="warn">Уақыт бітті — тест автоматты түрде аяқталды.</p>' : "") +
           '<h1>' + esc(t.title) + '</h1><p>' + verdict + '</p>' +
           '<div class="split">' + segs + '</div>' +
@@ -671,12 +704,13 @@
     if (q.missing) return '<article class="rv rv--missing" data-st="missing" data-flag="0" data-text=""><p>' + (i + 1) + '. Сұрақ мәтіні жоқ · кілт бойынша: ' + esc(q.correct.join(", ")) + '</p></article>';
     var opts = q.opts.map(function (o) {
       var ok = q.correct.indexOf(o.l) >= 0, on = sel.indexOf(o.l) >= 0;
-      return '<li class="' + (ok ? "is-ok" : on ? "is-no" : "") + '"><b>' + o.l + '</b> ' + Shyn.fmt(o.t) + (ok ? ' <span class="mark">дұрыс</span>' : on ? ' <span class="mark">сіздің таңдауыңыз</span>' : "") + '</li>';
+      return '<li class="' + (ok ? "is-ok" : on ? "is-no" : "") + '"><b>' + o.l + '</b> ' + Shyn.fmt(o.t) + Shyn.code(o.code) + (ok ? ' <span class="mark">дұрыс</span>' : on ? ' <span class="mark">сіздің таңдауыңыз</span>' : "") + '</li>';
     }).join("");
-    var text = (q.q + " " + q.opts.map(function (o) { return o.t; }).join(" ") + " " + (q.topic || "")).toLowerCase();
+    var text = (q.q + " " + q.opts.map(function (o) { return o.t || o.code || ""; }).join(" ") + " " + (q.topic || "")).toLowerCase();
     return '<article class="rv rv--' + r.state + '" data-st="' + r.state + '" data-flag="' + (R.flags[q.id] ? 1 : 0) + '" data-text="' + esc(text) + '">' +
       '<details><summary><span class="rv__n">' + (i + 1) + '</span><span class="rv__q">' + Shyn.fmt(q.q) + '</span>' +
       '<span class="rv__pts">' + r.points + " / " + r.max + '</span></summary>' +
+      (q.passage ? '<details class="rv__pass"><summary>Мәтінді көрсету</summary><div class="rv__ptext">' + Shyn.fmt(q.passage) + '</div></details>' : "") +
       Shyn.code(q.code) + '<ul class="rv__opts">' + opts + '</ul>' +
       '<div class="explain__t">' + Shyn.fmt(q.ex) + '</div>' +
       (q.disputed ? '<p class="warn">Даулы жауап. ' + esc(q.dnote || "") + '</p>' : "") +
