@@ -16,6 +16,16 @@
     Shyn.sets[set.key] = set;
   };
   Shyn.setFiles = function (files) {
+    if (!files.length) return fire();
+    // Алдымен бір біріктірілген файл (data/bundle.js); ол жүктелмесе ғана — әр жинақ бөлек
+    var v = global.SHYN_BUILD ? "?v=" + global.SHYN_BUILD : "", b = document.createElement("script");
+    b.src = "data/bundle.js" + v;
+    b.onload = function () { if (Object.keys(Shyn.sets).length >= files.length * 0.9) fire(); else loadEach(files); };
+    b.onerror = function () { loadEach(files); };
+    document.head.appendChild(b);
+  };
+  function loadEach(files) {
+    files = files.filter(function (f) { return !Shyn.sets[f]; });
     pending = files.length;
     if (!pending) return fire();
     files.forEach(function (f) {
@@ -24,7 +34,7 @@
       s.onload = s.onerror = function () { if (--pending === 0) fire(); };
       document.head.appendChild(s);
     });
-  };
+  }
   function fire() { isReady = true; readyCbs.forEach(function (cb) { cb(); }); readyCbs = []; }
   Shyn.onReady = function (cb) { if (isReady) cb(); else readyCbs.push(cb); };
 

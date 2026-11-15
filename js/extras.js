@@ -325,7 +325,6 @@
           return '<button data-th="' + t[0] + '" class="' + ((s.theme || "auto") === t[0] ? "is-on" : "") + '">' + t[1] + '</button>'; }).join("") + '</div></div>' +
         '<div class="set"><div><h3>Қаріп өлшемі</h3><p class="muted">Ұзын сұрақтарды оқуға ыңғайлы болу үшін.</p></div><div class="seg">' + [[0.92, "Кіші"], [1, "Қалыпты"], [1.1, "Үлкен"], [1.22, "Өте үлкен"]].map(function (f) {
           return '<button data-fs="' + f[0] + '" class="' + ((s.fontScale || 1) == f[0] ? "is-on" : "") + '">' + f[1] + '</button>'; }).join("") + '</div></div>' +
-        '<div class="set"><div><h3>ЖИ түсіндірмесі</h3><p class="muted">' + (Shyn.AI.hasKey() ? "Қосулы: " + Shyn.AI.providerName() + " (" + Shyn.AI.modelOf(Shyn.AI.provider()) + ")." : "Кілтсіз режим: ChatGPT/Claude чаты ашылады. API кілтін енгізсеңіз, түсіндірме осы бетте шығады.") + '</p></div><button class="btn btn--line" id="sAI">Баптау</button></div>' +
         '<div class="set"><div><h3>Прогресс файлы</h3><p class="muted">Басқа құрылғыға немесе браузерге көшіру үшін экспорттап, сол жерде импорттаңыз.</p></div><div class="inline"><button class="btn btn--line" id="sExp">Экспорт</button><label class="btn btn--line">Импорт<input type="file" accept="application/json,.json" id="sImp" hidden></label></div></div>' +
         '<div class="set set--danger"><div><h3>Барлық прогресті өшіру</h3><p class="muted">Нәтижелер, қателер, карточкалар және тарих өшіріледі. Қайтару мүмкін емес.</p></div><button class="btn btn--no" id="sReset">Өшіру</button></div>' +
       '</section>' +
@@ -333,7 +332,7 @@
     U.$("#sDate").addEventListener("change", function (e) { Store.set("examDate", e.target.value); U.toast(e.target.value ? "Емтихан күні сақталды" : "Емтихан күні өшірілді"); });
     U.on("[data-th]", "click", function (e, el) { Store.set("theme", el.getAttribute("data-th")); Shyn.applyTheme(); Shyn._keepScroll = true; Shyn.render(); }, view);
     U.on("[data-fs]", "click", function (e, el) { Store.set("fontScale", +el.getAttribute("data-fs")); Shyn.applyTheme(); Shyn._keepScroll = true; Shyn.render(); }, view);
-    U.$("#sAI").addEventListener("click", Shyn.openAIModal);
+    // ЖИ баптауы алынып тасталды
     U.$("#sExp").addEventListener("click", function () {
       var a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([Store.exportAll()], { type: "application/json" }));

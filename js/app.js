@@ -520,14 +520,7 @@
     return '<div class="reason"><span>Қатенің себебі:</span>' + Object.keys(REASONS).map(function (k) {
       return '<button class="conf__b' + (S.reasons[id] === k ? " is-on" : "") + '" data-reason="' + k + '" data-qid="' + esc(id) + '">' + REASONS[k] + '</button>'; }).join("") + '</div>';
   }
-  function aiHTML(id) {
-    var q = Shyn.questionById(id);
-    return '<div class="ai"><p class="ai__lbl">ЖИ-ден толығырақ түсіндірме</p><div class="ai__btns">' +
-      (q ? '<a class="btn btn--line ai__chat" target="_blank" rel="noopener" href="' + esc(Shyn.AI.chatURL("chatgpt", q)) + '">ChatGPT-та сұрау</a>' +
-           '<a class="btn btn--line ai__chat" target="_blank" rel="noopener" href="' + esc(Shyn.AI.chatURL("claude", q)) + '">Claude-та сұрау</a>' : "") +
-      '<button class="btn btn--primary" data-ai="' + esc(id) + '">Осында түсіндіру · ' + esc(Shyn.AI.providerName()) + '</button>' +
-      '</div><div class="ai__out" hidden></div></div>';
-  }
+  function aiHTML() { return ""; } // ЖИ түсіндірмесі алынып тасталды — әр сұрақта толық дайын түсіндірме бар
   function bindAI(root) {
     U.on("[data-ai]", "click", function (e, btn) {
       if (!Shyn.AI.hasKey()) { Shyn.openAIModal(); return; }
