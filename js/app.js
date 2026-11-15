@@ -520,11 +520,18 @@
     return '<div class="reason"><span>Қатенің себебі:</span>' + Object.keys(REASONS).map(function (k) {
       return '<button class="conf__b' + (S.reasons[id] === k ? " is-on" : "") + '" data-reason="' + k + '" data-qid="' + esc(id) + '">' + REASONS[k] + '</button>'; }).join("") + '</div>';
   }
-  function aiHTML(id) { return '<div class="ai"><button class="btn btn--line" data-ai="' + esc(id) + '">ЖИ-ден толығырақ түсіндірме сұрау</button><div class="ai__out" hidden></div></div>'; }
+  function aiHTML(id) {
+    var q = Shyn.questionById(id);
+    return '<div class="ai"><p class="ai__lbl">ЖИ-ден толығырақ түсіндірме</p><div class="ai__btns">' +
+      (q ? '<a class="btn btn--line ai__chat" target="_blank" rel="noopener" href="' + esc(Shyn.AI.chatURL("chatgpt", q)) + '">ChatGPT-та сұрау</a>' +
+           '<a class="btn btn--line ai__chat" target="_blank" rel="noopener" href="' + esc(Shyn.AI.chatURL("claude", q)) + '">Claude-та сұрау</a>' : "") +
+      '<button class="btn btn--primary" data-ai="' + esc(id) + '">Осында түсіндіру · ' + esc(Shyn.AI.providerName()) + '</button>' +
+      '</div><div class="ai__out" hidden></div></div>';
+  }
   function bindAI(root) {
     U.on("[data-ai]", "click", function (e, btn) {
       if (!Shyn.AI.hasKey()) { Shyn.openAIModal(); return; }
-      var id = btn.getAttribute("data-ai"), q = Shyn.questionById(id), out = btn.nextElementSibling;
+      var id = btn.getAttribute("data-ai"), q = Shyn.questionById(id), out = btn.closest(".ai").querySelector(".ai__out");
       out.hidden = false; out.textContent = "Ойланып жатыр…"; btn.disabled = true;
       Shyn.AI.explain(q, "Ережеге, жиі кездесетін қақпанға назар аудар және соңында жауабы жоқ бір қысқа бақылау сұрағын қос.")
         .then(function (t) { out.innerHTML = Shyn.fmt(t); })

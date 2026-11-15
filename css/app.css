@@ -1423,3 +1423,13 @@ kbd { font-family: var(--mono); font-size: .72em; opacity: .75; margin-left: 4px
 .q.q-in-l { animation: qInL .22s ease-out; }
 .quiz__main.q-bump { animation: qBump .3s ease; }
 @media (prefers-reduced-motion: reduce) { .q.q-in-r, .q.q-in-l, .quiz__main.q-bump { animation: none; } }
+/* Беттерді сырғытып ауыстыру анимациясы */
+@keyframes viewInR { from { transform: translateX(28px); opacity: .3; } to { transform: none; opacity: 1; } }
+@keyframes viewInL { from { transform: translateX(-28px); opacity: .3; } to { transform: none; opacity: 1; } }
+#view.view-in-r { animation: viewInR .22s ease-out; }
+#view.view-in-l { animation: viewInL .22s ease-out; }
+@media (prefers-reduced-motion: reduce) { #view.view-in-r, #view.view-in-l { animation: none; } }
+.ai__lbl { font-size: .88rem; color: var(--soft); margin: 0 0 6px; }
+.ai__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.ai__btns .btn { flex: 1 1 auto; justify-content: center; text-align: center; }
+.ai-prov { flex-wrap: wrap; margin: 10px 0 14px; }

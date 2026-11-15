@@ -363,29 +363,64 @@
   };
   Shyn.code = function (c) { return c ? '<pre class="code"><code>' + U.esc(c) + "</code></pre>" : ""; };
 
-  /* ================= ЖИ түсіндірмесі (міндетті емес, Groq) =================
-     Кілт кодта жоқ — ол тек пайдаланушының браузерінде сақталады. */
+  /* ================= ЖИ түсіндірмесі (міндетті емес) =================
+     Екі жол: 1) кілтсіз — сұрақ дайын промптпен ChatGPT немесе Claude чатында ашылады;
+     2) өз API кілтің болса — түсіндірме осы жерде шығады: Claude Sonnet 5.5, ChatGPT немесе тегін Groq.
+     Кілттер кодта жоқ — тек пайдаланушының браузерінде сақталады. */
+  var PROV = {
+    claude: { name: "Claude Sonnet 5.5", model: "claude-sonnet-5-5", key: "aiKeyClaude", hint: "sk-ant-…", url: "https://console.anthropic.com/settings/keys" },
+    openai: { name: "ChatGPT", model: "chat-latest", key: "aiKeyOpenai", hint: "sk-…", url: "https://platform.openai.com/api-keys" },
+    groq: { name: "Groq (тегін)", model: "openai/gpt-oss-120b", key: "aiKey", hint: "gsk_…", url: "https://console.groq.com/keys" }
+  };
+  function provider() {
+    var p = Store.settings.aiProvider;
+    if (PROV[p]) return p;
+    return (Store.settings.aiKey || "").trim() ? "groq" : "claude"; // бұрын Groq кілтін енгізгендер үшін
+  }
+  function keyOf(p) { return (Store.settings[PROV[p].key] || "").trim(); }
+  function modelOf(p) { return (Store.settings["aiModel_" + p] || (p === "groq" ? Store.settings.aiModel : "") || "").trim() || PROV[p].model; }
+  function prompt(q, focus, short) {
+    var subj = (Shyn.SUBJECT[q._subject] || {}).name || "";
+    var opts = q.opts.map(function (o) { return o.l + ") " + o.t + (o.code ? "\n" + o.code : ""); }).join("\n");
+    var pass = q.passage && !short ? "Мәтін: " + q.passage + "\n\n" : "";
+    return "Сен «" + subj + "» пәнінің оқытушысысың. Магистратураға (КТ) түсушіге қазақ тілінде, қарапайым сөзбен, қысқа (4–7 сөйлем) түсіндір.\n\n" + pass +
+      "Сұрақ: " + q.q + (q.code ? "\n" + q.code : "") + "\n\nНұсқалар:\n" + opts + "\n\nДұрыс жауап: " + q.correct.join(", ") +
+      ".\n\nДұрыс нұсқаның НЕГЕ дұрыс екенін және қалғандарының неге қате екенін түсіндір. Жауап даулы болса, соны атап өт." +
+      (short ? "" : " Формулаларды TeX түрінде \\( және \\) арасына жаз.") + (focus ? "\n\nҚосымша: " + focus : "");
+  }
+  function fail(r) { return r.text().then(function (t) { throw new Error("API қатесі (" + r.status + "): " + t.slice(0, 160)); }); }
   Shyn.AI = {
-    defaultModel: "openai/gpt-oss-120b",
-    hasKey: function () { return !!(Store.settings.aiKey || "").trim(); },
+    providers: PROV,
+    provider: provider,
+    providerName: function () { return PROV[provider()].name; },
+    modelOf: modelOf,
+    defaultModel: PROV.groq.model,
+    hasKey: function () { return !!keyOf(provider()); },
+    prompt: prompt,
+    // Кілтсіз: чатта дайын промптпен ашу (ChatGPT: chatgpt.com/?q=…, Claude: claude.ai/new?q=…)
+    chatURL: function (where, q) {
+      var p = prompt(q, "", true); if (p.length > 1800) p = prompt(Object.assign({}, q, { passage: "" }), "", true).slice(0, 1800);
+      return (where === "chatgpt" ? "https://chatgpt.com/?q=" : "https://claude.ai/new?q=") + encodeURIComponent(p);
+    },
     explain: function (q, focus) {
-      var subj = (Shyn.SUBJECT[q._subject] || {}).name || "";
-      var opts = q.opts.map(function (o) { return o.l + ") " + o.t + (o.code ? "\n" + o.code : ""); }).join("\n");
-      var prompt = "Сен «" + subj + "» пәнінің оқытушысысың. Магистратураға түсушіге қазақ тілінде, қарапайым сөзбен, қысқа (4–7 сөйлем) түсіндір.\n\n" +
-        "Сұрақ: " + q.q + (q.code ? "\n" + q.code : "") + "\n\nНұсқалар:\n" + opts + "\n\nДұрыс жауап: " + q.correct.join(", ") +
-        ".\n\nДұрыс нұсқаның НЕГЕ дұрыс екенін және қалғандарының неге қате екенін түсіндір. Жауап даулы болса, соны атап өт. " +
-        "Формулаларды TeX түрінде \\( және \\) арасына жаз." + (focus ? "\n\nҚосымша мақсат: " + focus : "");
-      return fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: "Bearer " + Store.settings.aiKey.trim() },
-        body: JSON.stringify({ model: (Store.settings.aiModel || "").trim() || Shyn.AI.defaultModel, messages: [{ role: "user", content: prompt }], temperature: 0.3 })
-      }).then(function (r) {
-        if (!r.ok) return r.text().then(function (t) { throw new Error("API қатесі (" + r.status + "): " + t.slice(0, 160)); });
-        return r.json();
-      }).then(function (d) {
-        var m = (d.choices && d.choices[0] && d.choices[0].message) || {};
-        return m.content || m.reasoning || "Бос жауап келді.";
-      });
+      var p = provider(), key = keyOf(p), model = modelOf(p), text = prompt(q, focus);
+      if (p === "claude") {
+        return fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+          body: JSON.stringify({ model: model, max_tokens: 1200, messages: [{ role: "user", content: text }] })
+        }).then(function (r) { return r.ok ? r.json() : fail(r); }).then(function (d) {
+          return (d.content || []).filter(function (c) { return c.type === "text"; }).map(function (c) { return c.text; }).join("\n") || "Бос жауап келді.";
+        });
+      }
+      var url = p === "openai" ? "https://api.openai.com/v1/chat/completions" : "https://api.groq.com/openai/v1/chat/completions";
+      var body = { model: model, messages: [{ role: "user", content: text }] };
+      if (p === "groq") body.temperature = 0.3;
+      return fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + key }, body: JSON.stringify(body) })
+        .then(function (r) { return r.ok ? r.json() : fail(r); }).then(function (d) {
+          var m = (d.choices && d.choices[0] && d.choices[0].message) || {};
+          return m.content || m.reasoning || "Бос жауап келді.";
+        });
     }
   };
 })(window);

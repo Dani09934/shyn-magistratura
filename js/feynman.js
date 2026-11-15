@@ -312,7 +312,7 @@
       '<div class="inline fy-actions"><button class="btn ' + (S.ok[t.id] ? "btn--line" : "btn--primary") + '" id="fyOk">' + (S.ok[t.id] ? "✓ Түсіндім (алып тастау)" : "Түсіндім") + '</button>' +
       (n ? '<button class="btn btn--line" id="fyGo">Осы тақырыптан 15 сұрақ (қорда ' + n + ')</button>' : "") + '</div></section>' +
       '</article>' +
-      '<nav class="fy-pager">' + (prev ? '<a href="#/explain/' + prev.id + '">← ' + esc(prev.t) + '</a>' : "<span></span>") + (next ? '<a href="#/explain/' + next.id + '">' + esc(next.t) + ' →</a>' : "") + '</nav>';
+      '<nav class="fy-pager">' + (prev ? '<a data-swipe-prev href="#/explain/' + prev.id + '">← ' + esc(prev.t) + '</a>' : "<span></span>") + (next ? '<a data-swipe-next href="#/explain/' + next.id + '">' + esc(next.t) + ' →</a>' : "") + '</nav>';
     var ta = U.$("#fyNote"), tm;
     ta.addEventListener("input", function () { clearTimeout(tm); tm = setTimeout(function () { S.note[t.id] = ta.value.trim(); save(); }, 400); });
     U.$("#fyOk").addEventListener("click", function () {

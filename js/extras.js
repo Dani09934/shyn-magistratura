@@ -291,13 +291,30 @@
 
   /* ================= Баптаулар ================= */
   Shyn.openAIModal = function () {
+    var P = Shyn.AI.providers, cur = Shyn.AI.provider();
+    function body(p) {
+      var x = P[p];
+      return '<label class="lbl">' + x.name + ' API кілті<input class="field" id="aiKey" type="password" autocomplete="off" placeholder="' + x.hint + '" value="' + esc(Store.settings[x.key] || "") + '"></label>' +
+        '<p class="muted"><a href="' + x.url + '" target="_blank" rel="noopener">Кілтті осы жерден аласыз</a>' + (p === "groq" ? " — тегін." : " — ақылы (сұраныс сайын аз ғана төлем).") + '</p>' +
+        '<label class="lbl">Модель<input class="field" id="aiModel" placeholder="' + x.model + '" value="' + esc(Store.settings["aiModel_" + p] || (p === "groq" ? Store.settings.aiModel || "" : "")) + '"></label>' +
+        '<p class="muted">Бос қалдырсаңыз: ' + x.model + '.</p>';
+    }
     Shyn.modal('<h2 class="modal__title">ЖИ түсіндірмесі</h2>' +
-      '<p class="muted">Әр сұрақта дайын түсіндірме бар. ЖИ қосымша, кеңірек талдау береді. Ол үшін тегін <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Groq кілті</a> керек. Кілт тек осы браузерде сақталады және тек api.groq.com мекенжайына жіберіледі.</p>' +
-      '<label class="lbl">Groq API кілті<input class="field" id="aiKey" type="password" autocomplete="off" placeholder="gsk_…" value="' + esc(Store.settings.aiKey || "") + '"></label>' +
-      '<label class="lbl">Модель<input class="field" id="aiModel" placeholder="' + Shyn.AI.defaultModel + '" value="' + esc(Store.settings.aiModel || "") + '"></label>' +
-      '<p class="muted">Бос қалдырсаңыз, ' + Shyn.AI.defaultModel + ' қолданылады. Сұрау лимиті үлкенірек модель: llama-3.1-8b-instant.</p>' +
+      '<p class="muted">Әр сұрақта дайын түсіндірме бар. Кілтсіз де болады: «ChatGPT-та сұрау» және «Claude-та сұрау» батырмалары сұрақты дайын промптпен чатта ашады. Ал түсіндірме осы бетте шықсын десеңіз, төмендегі қызметтің бірінің API кілтін енгізіңіз — ол тек осы браузерде сақталады.</p>' +
+      '<div class="seg ai-prov" role="tablist">' + Object.keys(P).map(function (p) { return '<button data-prov="' + p + '" class="' + (p === cur ? "is-on" : "") + '">' + P[p].name + '</button>'; }).join("") + '</div>' +
+      '<div id="aiBody">' + body(cur) + '</div>' +
       '<div class="modal__actions"><button class="btn btn--primary" id="aiSave">Сақтау</button><button class="btn btn--ghost" data-close>Болдырмау</button></div>');
-    U.$("#aiSave").addEventListener("click", function () { Store.set("aiKey", U.$("#aiKey").value.trim()); Store.set("aiModel", U.$("#aiModel").value.trim()); Shyn.closeModal(); U.toast("ЖИ баптаулары сақталды"); });
+    U.$$("[data-prov]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        cur = b.getAttribute("data-prov");
+        U.$$("[data-prov]").forEach(function (x) { x.classList.toggle("is-on", x === b); });
+        U.$("#aiBody").innerHTML = body(cur);
+      });
+    });
+    U.$("#aiSave").addEventListener("click", function () {
+      Store.set("aiProvider", cur); Store.set(P[cur].key, U.$("#aiKey").value.trim()); Store.set("aiModel_" + cur, U.$("#aiModel").value.trim());
+      Shyn.closeModal(); U.toast("ЖИ баптаулары сақталды: " + P[cur].name); if (Shyn._route === "quiz") { Shyn._keepScroll = true; }
+    });
   };
   Shyn.route("settings", function () {
     var s = Store.settings;
@@ -308,7 +325,7 @@
           return '<button data-th="' + t[0] + '" class="' + ((s.theme || "auto") === t[0] ? "is-on" : "") + '">' + t[1] + '</button>'; }).join("") + '</div></div>' +
         '<div class="set"><div><h3>Қаріп өлшемі</h3><p class="muted">Ұзын сұрақтарды оқуға ыңғайлы болу үшін.</p></div><div class="seg">' + [[0.92, "Кіші"], [1, "Қалыпты"], [1.1, "Үлкен"], [1.22, "Өте үлкен"]].map(function (f) {
           return '<button data-fs="' + f[0] + '" class="' + ((s.fontScale || 1) == f[0] ? "is-on" : "") + '">' + f[1] + '</button>'; }).join("") + '</div></div>' +
-        '<div class="set"><div><h3>ЖИ түсіндірмесі</h3><p class="muted">' + (Shyn.AI.hasKey() ? "Кілт сақталған." : "Кілт енгізілмеген — ЖИ батырмасы осы терезені ашады.") + '</p></div><button class="btn btn--line" id="sAI">Баптау</button></div>' +
+        '<div class="set"><div><h3>ЖИ түсіндірмесі</h3><p class="muted">' + (Shyn.AI.hasKey() ? "Қосулы: " + Shyn.AI.providerName() + " (" + Shyn.AI.modelOf(Shyn.AI.provider()) + ")." : "Кілтсіз режим: ChatGPT/Claude чаты ашылады. API кілтін енгізсеңіз, түсіндірме осы бетте шығады.") + '</p></div><button class="btn btn--line" id="sAI">Баптау</button></div>' +
         '<div class="set"><div><h3>Прогресс файлы</h3><p class="muted">Басқа құрылғыға немесе браузерге көшіру үшін экспорттап, сол жерде импорттаңыз.</p></div><div class="inline"><button class="btn btn--line" id="sExp">Экспорт</button><label class="btn btn--line">Импорт<input type="file" accept="application/json,.json" id="sImp" hidden></label></div></div>' +
         '<div class="set set--danger"><div><h3>Барлық прогресті өшіру</h3><p class="muted">Нәтижелер, қателер, карточкалар және тарих өшіріледі. Қайтару мүмкін емес.</p></div><button class="btn btn--no" id="sReset">Өшіру</button></div>' +
       '</section>' +
