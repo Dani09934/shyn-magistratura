@@ -1433,3 +1433,22 @@ kbd { font-family: var(--mono); font-size: .72em; opacity: .75; margin-left: 4px
 .ai__btns { display: flex; flex-wrap: wrap; gap: 8px; }
 .ai__btns .btn { flex: 1 1 auto; justify-content: center; text-align: center; }
 .ai-prov { flex-wrap: wrap; margin: 10px 0 14px; }
+
+/* Тыңдалым дауысы */
+.tts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 12px 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--surface-2); }
+.tts__play.is-on { background: var(--part); border-color: var(--part); }
+.tts__rate { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--soft); }
+.tts__rate select { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.tts__hint { flex-basis: 100%; font-size: .85rem; color: var(--soft); }
+/* Толық сынақтар динамикасы */
+.dyn__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px; }
+.dyn__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 12px 0; }
+.dyn__c { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--surface); }
+.dyn__dot { width: 10px; height: 10px; border-radius: 50%; grid-row: 1; }
+.dyn__v { grid-column: 1 / -1; font-family: var(--display); font-size: 1.5rem; }
+.dyn__c small { grid-column: 1 / -1; font-weight: 600; }
+.dyn__c small.up { color: var(--ok); } .dyn__c small.down { color: var(--no, #c53030); }
+.dyn__chart { width: 100%; height: auto; }
+.dyn__note { font-size: .88rem; }
+.pcal { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 12px 0 4px; }
+.pcal .muted { font-size: .88rem; }

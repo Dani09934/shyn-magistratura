@@ -93,6 +93,43 @@
     var list = fresh.length ? fresh : sets;
     return list[Math.floor(Math.random() * list.length)];
   }
+  /* Күнтізбе (.ics): қалған әр күнге бір оқиға, белгіленген уақытта еске салу */
+  function dateForDay(c, d) {
+    var base = Store.settings.examDate && c.mode !== "manual" ? new Date(Store.settings.examDate + "T12:00:00") : new Date((P.start || dayKey()) + "T12:00:00");
+    var x = new Date(base);
+    if (Store.settings.examDate && c.mode !== "manual") x.setDate(x.getDate() - (N + 1 - d)); else x.setDate(x.getDate() + d - 1);
+    return x;
+  }
+  function icsEsc(t) { return String(t).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n"); }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function makeICS(time) {
+    var c = current(), hm = time.split(":"), now = new Date(), lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Shyn//Intensive//KK", "CALSCALE:GREGORIAN", "METHOD:PUBLISH"];
+    var stamp = now.toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+    for (var d = Math.max(1, c.day); d <= N; d++) {
+      var x = dateForDay(c, d), D = DAYS[d - 1];
+      var ds = x.getFullYear() + pad(x.getMonth() + 1) + pad(x.getDate()), st = ds + "T" + pad(+hm[0]) + pad(+hm[1]) + "00";
+      var endH = (+hm[0] + 2) % 24, et = ds + "T" + pad(endH) + pad(+hm[1]) + "00";
+      lines.push("BEGIN:VEVENT", "UID:shyn-" + ds + "-" + d + "@shyn", "DTSTAMP:" + stamp, "DTSTART:" + st, "DTEND:" + et,
+        "SUMMARY:" + icsEsc("Шың · " + d + "-күн: " + D.t),
+        "DESCRIPTION:" + icsEsc(D.why + "\n\nТапсырмалар:\n" + D.tasks.map(function (t, i) { return (i + 1) + ") " + t[1]; }).join("\n") + "\n\n" + location.origin + location.pathname + "#/plan"),
+        "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + icsEsc("Шың: " + D.t), "TRIGGER:PT0M", "END:VALARM", "END:VEVENT");
+    }
+    lines.push("END:VCALENDAR");
+    return lines.join("\r\n");
+  }
+  function calendarModal() {
+    Shyn.modal('<h2 class="modal__title">Күнтізбеге еске салу</h2><p class="muted">Жоспардың қалған әр күніне күнтізбе оқиғасы жасалады: тақырыбы мен тапсырмалары жазылған, белгіленген уақытта еске салады. Файлды ашқанда телефон оны күнтізбеге қосуды ұсынады.</p>' +
+      '<label class="lbl">Уақыт<input class="field" type="time" id="calT" value="' + (P.calT || "19:00") + '"></label>' +
+      '<div class="modal__actions"><button class="btn btn--primary" id="calGo">Файлды жүктеу (.ics)</button><button class="btn btn--ghost" data-close>Болдырмау</button></div>');
+    U.$("#calGo").addEventListener("click", function () {
+      var t = U.$("#calT").value || "19:00"; P.calT = t; save();
+      var blob = new Blob([makeICS(t)], { type: "text/calendar;charset=utf-8" }), a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "shyn-15-kun.ics"; document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      Shyn.closeModal(); U.toast("Файл жүктелді — оны ашып, күнтізбеге қосыңыз");
+    });
+  }
+  Shyn._planICS = makeICS;
   function topicPool(sub, rx, n) {
     var re = new RegExp(rx, "i");
     var reading = /Оқылым|Аналитикалық/.test(rx);
@@ -179,8 +216,10 @@
     } else intro = "";
     var cur = c.day >= 1 && c.day <= N ? c.day : 0;
     var list = '<ol class="pdays">' + DAYS.map(function (x, i) { return dayHTML(i + 1, cur, c.mode, i + 1 === cur || (!cur && i === 0)); }).join("") + '</ol>';
-    view.innerHTML = head + intro + list + (P.start && c.mode === "manual" ? '<p class="muted small pfoot">Жоспар ' + (function (x) { return x.getDate() + " " + U.MONTHS[x.getMonth()]; })(new Date(P.start + "T12:00:00")) + ' басталған. <button class="linkbtn" id="pReset">Басынан бастау</button></p>' : "");
+    var calBtn = (c.day >= 1 && c.day <= N) ? '<div class="pcal"><button class="btn btn--line" id="pCal">Күнтізбеге еске салу қосу</button><span class="muted">Телефон күнтізбесі күн сайын белгілі уақытта сол күннің тақырыбын еске салады.</span></div>' : "";
+    view.innerHTML = head + intro + calBtn + list + (P.start && c.mode === "manual" ? '<p class="muted small pfoot">Жоспар ' + (function (x) { return x.getDate() + " " + U.MONTHS[x.getMonth()]; })(new Date(P.start + "T12:00:00")) + ' басталған. <button class="linkbtn" id="pReset">Басынан бастау</button></p>' : "");
     var go = U.$("#pGo"); if (go) go.addEventListener("click", function () { P.start = dayKey(); P.done = {}; save(); Shyn._keepScroll = true; Shyn.render(); });
+    var cal = U.$("#pCal"); if (cal) cal.addEventListener("click", calendarModal);
     var rs = U.$("#pReset"); if (rs) rs.addEventListener("click", function () { Shyn.ask("Жоспар 1-күннен қайта басталады. Жалғастырасыз ба?", "Басынан бастау", "Болдырмау", function () { P.start = dayKey(); P.done = {}; save(); Shyn.render(); }); });
     U.on("[data-run]", "click", function (e, el) { var a = el.getAttribute("data-run").split(":"); run(+a[0], +a[1]); }, view);
   });

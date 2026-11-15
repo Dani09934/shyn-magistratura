@@ -462,6 +462,7 @@
     var cur = g.querySelector(".is-cur"); if (cur && cur.scrollIntoView && global.innerWidth < 900) cur.scrollIntoView({ block: "nearest", inline: "center" });
   }
   function goto(i) {
+    if (Shyn.tts) Shyn.tts.stop();
     S.index = Math.max(0, Math.min(S.test.questions.length - 1, i));
     persist(); drawGrid(); drawQuestion();
   }
@@ -492,7 +493,8 @@
     var conf = '<div class="conf" role="group" aria-label="Сенімділік"><span>Қаншалықты сенімдісіз?</span>' + Object.keys(CONF).map(function (k) {
       return '<button class="conf__b' + (S.conf[q.id] === k ? " is-on" : "") + '" data-conf="' + k + '">' + CONF[k] + '</button>'; }).join("") + '</div>';
     w.innerHTML = '<article class="q">' + head + '<div class="q__tags">' + tags + '</div>' +
-      (q.passage ? '<details class="passage"' + (q.audio ? "" : " open") + '><summary>' + (/^Тыңдалым/.test(q.topic || "") ? (q.audio ? "Транскрипт (алдымен аудионы тыңдап көріңіз)" : "Тыңдалым мәтіні (транскрипт)") : "Тапсырмаға мәтін") + '</summary><div class="passage__t">' + Shyn.fmt(q.passage) + '</div></details>' : "") +
+      (q.passage && !q.audio && /^Тыңдалым/.test(q.topic || "") && Shyn.tts && Shyn.tts.ok() ? Shyn.tts.html(q.id) : "") +
+      (q.passage ? '<details class="passage"' + (q.audio || (/^Тыңдалым/.test(q.topic || "") && Shyn.tts && Shyn.tts.ok()) ? "" : " open") + '><summary>' + (/^Тыңдалым/.test(q.topic || "") ? (q.audio ? "Транскрипт (алдымен аудионы тыңдап көріңіз)" : "Тыңдалым мәтіні (транскрипт)") : "Тапсырмаға мәтін") + '</summary><div class="passage__t">' + Shyn.fmt(q.passage) + '</div></details>' : "") +
       (q.audio ? '<div class="audio"><span>Аудиожазба — жауап осы жазба бойынша анықталады</span><audio controls preload="none" src="' + encodeURI(q.audio) + '"></audio></div>' : "") +
       '<div class="q__text">' + Shyn.fmt(q.q) + '</div>' + Shyn.code(q.code) +
       '<p class="q__hint">' + (q.multi ? "Бір немесе бірнеше дұрыс жауапты таңдаңыз (үштен аспайды). Толық жиын — 2 балл, ішінара — 1 балл." : "Бір жауапты таңдаңыз.") + '</p>' +
@@ -546,6 +548,7 @@
     var p = U.$("#prevBtn"); if (p) p.addEventListener("click", function () { goto(S.index - 1); });
     var nx = U.$("#nextBtn"); if (nx) nx.addEventListener("click", function () { goto(S.index + 1); });
     var en = U.$("#endBtn"); if (en) en.addEventListener("click", confirmFinish);
+    if (Shyn.tts) Shyn.tts.bind(w, q);
     var f = U.$("#flagBtn"); if (f) f.addEventListener("click", function () { toggleFlag(q); });
     bindAI(w);
   }
