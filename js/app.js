@@ -44,6 +44,7 @@
 
   /* ================= Тема және қаріп ================= */
   function applyTheme() {
+    if (Shyn.applyDesign) return Shyn.applyDesign(); // js/themes.js: түс схемасы, режим, қаріп
     var t = Store.settings.theme || "auto";
     var dark = t === "dark" || (t === "auto" && global.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
@@ -52,6 +53,7 @@
   }
   Shyn.applyTheme = applyTheme;
   document.getElementById("themeBtn").addEventListener("click", function () {
+    if (Shyn.openDesign) return Shyn.openDesign();
     var dark = document.documentElement.getAttribute("data-theme") === "dark";
     Store.set("theme", dark ? "light" : "dark"); applyTheme();
   });

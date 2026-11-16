@@ -33,12 +33,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=d57ad7c63d">
+  <link rel="stylesheet" href="css/app.css?v=8f8b74e3a8">
+  <script>/* Безендіруді бет салынбай тұрып қолдану — түс жыпылықтамасын */
+  (function(){try{var s=(JSON.parse(localStorage.getItem("shyn_v1"))||{}).settings||{},r=document.documentElement,m=s.theme||"auto";
+  var d=m==="dark"||m==="oled"||(m==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);
+  r.setAttribute("data-theme",d?"dark":"light");if(s.palette)r.setAttribute("data-palette",s.palette);if(m==="oled")r.setAttribute("data-oled","");
+  if(s.font)r.setAttribute("data-font",s.font);if(s.shape)r.setAttribute("data-shape",s.shape);if(s.fontScale)r.style.setProperty("--fs",s.fontScale);}catch(e){}})();</script>
 </head>
 <body class="is-loading">
   <script>
     /* Жүктелу бақылаушысы: сайт 12 секундта ашылмаса немесе қате болса — «Жаңарту» батырмасын көрсетеді */
-    window.SHYN_BUILD="d57ad7c63d";
+    window.SHYN_BUILD="8f8b74e3a8";
     (function () {
       var errs = [];
       window.addEventListener("error", function (e) { errs.push((e.message || "") + " " + ((e.filename || "").split("/").pop() || "")); });
@@ -72,7 +77,7 @@
       <a class="navlink" data-sec="learn" href="#/media"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3z"/><path d="M21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/></svg><span>Оқу материалдары</span></a>
       <a class="navlink" data-sec="me" href="#/stats"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Прогресс</span></a>
     </nav>
-    <button class="themebtn" id="themeBtn" aria-label="Тақырыпты ауыстыру"><span aria-hidden="true"></span>Тақырып</button>
+    <button class="themebtn" id="themeBtn" aria-label="Тақырыпты ауыстыру"><span aria-hidden="true"></span>Безендіру</button>
   </aside>
 
   <main id="view" class="view" tabindex="-1">
@@ -96,33 +101,34 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="js/core.js?v=d57ad7c63d"></script>
-  <script src="data/flashcards.js?v=d57ad7c63d"></script>
-  <script src="data/flashcards2.js?v=d57ad7c63d"></script>
-  <script src="data/sorting.js?v=d57ad7c63d"></script>
-  <script src="data/synonyms.js?v=d57ad7c63d"></script>
-  <script src="js/nav.js?v=d57ad7c63d"></script>
-  <script src="js/app.js?v=d57ad7c63d"></script>
-  <script src="js/extras.js?v=d57ad7c63d"></script>
-  <script src="data/grammar.js?v=d57ad7c63d"></script>
-  <script src="data/grammar2.js?v=d57ad7c63d"></script>
-  <script src="js/english.js?v=d57ad7c63d"></script>
-  <script src="js/eng-intensive.js?v=d57ad7c63d"></script>
-  <script src="js/lab-algo.js?v=d57ad7c63d"></script>
-  <script src="js/lab-db.js?v=d57ad7c63d"></script>
-  <script src="js/game.js?v=d57ad7c63d"></script>
-  <script src="js/cheats.js?v=d57ad7c63d"></script>
-  <script src="js/feynman.js?v=d57ad7c63d"></script>
-  <script src="js/formulas.js?v=d57ad7c63d"></script>
-  <script src="js/boost.js?v=d57ad7c63d"></script>
-  <script src="js/mistakes.js?v=d57ad7c63d"></script>
-  <script src="js/plan.js?v=d57ad7c63d"></script>
-  <script src="js/media.js?v=d57ad7c63d"></script>
-  <script src="js/pwa.js?v=d57ad7c63d"></script>
+  <script src="js/core.js?v=8f8b74e3a8"></script>
+  <script src="js/themes.js?v=8f8b74e3a8"></script>
+  <script src="data/flashcards.js?v=8f8b74e3a8"></script>
+  <script src="data/flashcards2.js?v=8f8b74e3a8"></script>
+  <script src="data/sorting.js?v=8f8b74e3a8"></script>
+  <script src="data/synonyms.js?v=8f8b74e3a8"></script>
+  <script src="js/nav.js?v=8f8b74e3a8"></script>
+  <script src="js/app.js?v=8f8b74e3a8"></script>
+  <script src="js/extras.js?v=8f8b74e3a8"></script>
+  <script src="data/grammar.js?v=8f8b74e3a8"></script>
+  <script src="data/grammar2.js?v=8f8b74e3a8"></script>
+  <script src="js/english.js?v=8f8b74e3a8"></script>
+  <script src="js/eng-intensive.js?v=8f8b74e3a8"></script>
+  <script src="js/lab-algo.js?v=8f8b74e3a8"></script>
+  <script src="js/lab-db.js?v=8f8b74e3a8"></script>
+  <script src="js/game.js?v=8f8b74e3a8"></script>
+  <script src="js/cheats.js?v=8f8b74e3a8"></script>
+  <script src="js/feynman.js?v=8f8b74e3a8"></script>
+  <script src="js/formulas.js?v=8f8b74e3a8"></script>
+  <script src="js/boost.js?v=8f8b74e3a8"></script>
+  <script src="js/mistakes.js?v=8f8b74e3a8"></script>
+  <script src="js/plan.js?v=8f8b74e3a8"></script>
+  <script src="js/media.js?v=8f8b74e3a8"></script>
+  <script src="js/pwa.js?v=8f8b74e3a8"></script>
   <script>
     /* Мобильді «Тағы» беті — бүйірлік мәзірдің толық тізімі */
     Shyn.route("more", function () { location.replace("#/stats"); });
   </script>
-  <script src="data/index.js?v=d57ad7c63d"></script>
+  <script src="data/index.js?v=8f8b74e3a8"></script>
 </body>
 </html>

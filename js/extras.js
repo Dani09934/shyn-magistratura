@@ -329,17 +329,13 @@
     view.innerHTML = '<header class="page-head"><h1>Баптаулар</h1></header>' +
       '<section class="block settings">' +
         '<div class="set"><div><h3>Емтихан күні</h3><p class="muted">Басты бетте емтиханға дейінгі кері санақ көрсетіледі.</p></div><input type="date" class="field" id="sDate" value="' + esc(s.examDate || "") + '"></div>' +
-        '<div class="set"><div><h3>Тақырып</h3><p class="muted">«Жүйелік» — құрылғы баптауына қарай.</p></div><div class="seg">' + [["auto", "Жүйелік"], ["light", "Жарық"], ["dark", "Қараңғы"]].map(function (t) {
-          return '<button data-th="' + t[0] + '" class="' + ((s.theme || "auto") === t[0] ? "is-on" : "") + '">' + t[1] + '</button>'; }).join("") + '</div></div>' +
-        '<div class="set"><div><h3>Қаріп өлшемі</h3><p class="muted">Ұзын сұрақтарды оқуға ыңғайлы болу үшін.</p></div><div class="seg">' + [[0.92, "Кіші"], [1, "Қалыпты"], [1.1, "Үлкен"], [1.22, "Өте үлкен"]].map(function (f) {
-          return '<button data-fs="' + f[0] + '" class="' + ((s.fontScale || 1) == f[0] ? "is-on" : "") + '">' + f[1] + '</button>'; }).join("") + '</div></div>' +
         '<div class="set"><div><h3>Прогресс файлы</h3><p class="muted">Басқа құрылғыға немесе браузерге көшіру үшін экспорттап, сол жерде импорттаңыз.</p></div><div class="inline"><button class="btn btn--line" id="sExp">Экспорт</button><label class="btn btn--line">Импорт<input type="file" accept="application/json,.json" id="sImp" hidden></label></div></div>' +
         '<div class="set set--danger"><div><h3>Барлық прогресті өшіру</h3><p class="muted">Нәтижелер, қателер, карточкалар және тарих өшіріледі. Қайтару мүмкін емес.</p></div><button class="btn btn--no" id="sReset">Өшіру</button></div>' +
       '</section>' +
+      '<section class="block" id="sDesign"><h2>Безендіру</h2>' + Shyn.designPanelHTML() + '</section>' +
       '<section class="block"><h2>Жоба туралы</h2><p class="muted">Шың — магистратураға кешенді тестілеуге дайындалуға арналған офлайн жаттықтырғыш. Интернетсіз де, тіркелусіз де жұмыс істейді: прогресс тек сіздің браузеріңізде. Балл ресми ереже бойынша есептеледі: алгоритмдерде бір жауап — 1 балл, деректер қорында қатесіз — 2 балл, бір қате — 1 балл, екі және одан көп қате — 0.</p></section>';
     U.$("#sDate").addEventListener("change", function (e) { Store.set("examDate", e.target.value); U.toast(e.target.value ? "Емтихан күні сақталды" : "Емтихан күні өшірілді"); });
-    U.on("[data-th]", "click", function (e, el) { Store.set("theme", el.getAttribute("data-th")); Shyn.applyTheme(); Shyn._keepScroll = true; Shyn.render(); }, view);
-    U.on("[data-fs]", "click", function (e, el) { Store.set("fontScale", +el.getAttribute("data-fs")); Shyn.applyTheme(); Shyn._keepScroll = true; Shyn.render(); }, view);
+    Shyn.bindDesignPanel(U.$("#sDesign"));
     // ЖИ баптауы алынып тасталды
     U.$("#sExp").addEventListener("click", function () {
       var a = document.createElement("a");
