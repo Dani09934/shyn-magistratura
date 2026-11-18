@@ -64,7 +64,7 @@
   Shyn.todayHTML = function () {
     var ex = Store.settings.examDate;
     if (!ex) return '<section class="block today"><h2>Бүгін</h2><p>Емтихан күнін белгілеңіз — жоспар соған қарай сығылады.</p>' +
-      '<div class="inline"><input class="field" type="date" id="tdDate" value="2026-11-29"><button class="btn btn--gold" id="tdSave">Сақтау</button></div></section>';
+      '<div class="inline"><input class="field" type="date" id="tdDate" value="2026-11-28"><button class="btn btn--gold" id="tdSave">Сақтау</button></div></section>';
     var left = daysTo(ex);
     if (left < 0) return "";
     if (left === 0) return checklist("Бүгін — емтихан! Сәттілік!", "Сен дайынсың. Асықпа, әр сұрақты соңына дейін оқы.", MORN);

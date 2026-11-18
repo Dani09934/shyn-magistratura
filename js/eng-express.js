@@ -11,7 +11,7 @@
   S.done = S.done || {}; S.rate = S.rate || 0.8; S.listen = S.listen || {};
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   function today() { return U.dayKey(); }
-  function examDay() { return Store.settings.examDate || "2026-11-29"; }
+  function examDay() { return Store.settings.examDate || "2026-11-28"; }
   function daysLeft() { return Math.round((new Date(examDay() + "T12:00:00") - new Date(today() + "T12:00:00")) / 864e5); }
   function md(dk) { var d = new Date(dk + "T12:00:00"); return d.getDate() + " " + U.MONTHS[d.getMonth()]; }
   function addDays(dk, n) { var d = new Date(dk + "T12:00:00"); d.setDate(d.getDate() + n); return U.dayKey(d); }
@@ -100,7 +100,7 @@
     var ex = examDay();
     if (dk >= ex) return "exam";
     if (dk === addDays(ex, -1)) return "review";
-    if (dk === addDays(ex, -6) || dk === addDays(ex, -2)) return "mock";
+    if (dk === addDays(ex, -7) || dk === addDays(ex, -2)) return "mock"; // 22.11 және 27.11 — «Распорядок дня» кестесімен бірдей
     return "study";
   }
   function tasks(dk) {

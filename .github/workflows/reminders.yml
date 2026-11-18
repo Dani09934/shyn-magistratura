@@ -1,0 +1,28 @@
+# Шың — Telegram-ескертулер: Қазақстан уақытымен 6:00–22:00, әр 2 сағат сайын (UTC 1:00–17:00)
+name: Telegram reminders
+on:
+  schedule:
+    - cron: "0 1-17/2 * * *"
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Тест хабарламасын жіберу"
+        type: boolean
+        default: true
+permissions:
+  contents: read
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Send reminder
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FORCE_TEST: ${{ github.event_name == 'workflow_dispatch' && inputs.test && '1' || '' }}
+        run: python tools/reminders/remind.py
