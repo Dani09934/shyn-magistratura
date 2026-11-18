@@ -260,6 +260,7 @@
       '<div><h2>Қателердің себептері</h2>' + (reasons ? '<div class="weaks">' + reasons.map(function (r) {
         return '<div class="weak"><span class="weak__name">' + RN[r.reason] + '</span>' + Shyn.bar(r.pct, r.reason === "unknown" ? "low" : r.reason === "confused" ? "mid" : "good") + '<span class="weak__pct">' + r.count + '</span></div>'; }).join("") + '</div><p class="muted">Себепті түсіндірме астындағы батырмалармен белгілеңіз — қайталау аралығы соған қарай таңдалады.</p>' : '<p class="muted">Қате жоқ немесе әлі тест тапсырылмаған.</p>') + '</div></section>';
     if (Shyn.examDynHTML) { var hd = view.querySelector(".page-head"); if (hd) hd.insertAdjacentHTML("afterend", Shyn.examDynHTML(H)); }
+    if (Shyn.predictHTML) { var ph = view.querySelector(".page-head"); if (ph) { ph.insertAdjacentHTML("afterend", Shyn.predictHTML("stats")); Shyn.predictBind(view); } }
     U.on("[data-topic]", "click", function (e, el) { Shyn.launchTopic(el.getAttribute("data-topic")); }, view);
     U.on("[data-hist]", "click", function (e, el) { Shyn.openHistory(el.getAttribute("data-hist")); }, view);
   });

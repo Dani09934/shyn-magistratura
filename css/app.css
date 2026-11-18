@@ -1575,3 +1575,47 @@ body.has-ibanner #view { padding-bottom: 96px; }
 .dpanel__f p { margin: 0; flex: 1 1 240px; font-size: .88rem; }
 .btn--sm { padding: 6px 12px; font-size: .86rem; }
 @media (max-width: 480px) { .modal__box:has(.dpanel) { padding: 22px 16px; } .dtheme__pv { height: 52px; } .dtheme__t small { display: none; } }
+
+/* ===== Болжам (150 балл) ===== */
+.pred { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; }
+.pred__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pred__head h2 { margin: 0; }
+.pred__top { display: flex; align-items: center; gap: 22px; margin-top: 14px; flex-wrap: wrap; }
+.pred__big { display: flex; align-items: baseline; gap: 4px; font-family: Unbounded, var(--font, sans-serif); }
+.pred__big span { font-size: 2.6rem; font-weight: 700; line-height: 1; }
+.pred__big small { color: var(--soft); font-size: 1rem; }
+.pred__big.is-ok span { color: var(--ok); } .pred__big.is-no span { color: var(--no); }
+.pred__gauge { flex: 1 1 240px; min-width: 0; }
+.pred__track { position: relative; height: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; }
+.pred__track > span { display: block; height: 100%; background: var(--gold); border-radius: 99px; }
+.pred__track > i { position: absolute; top: -5px; bottom: -5px; width: 3px; margin-left: -1px; background: var(--ink); border-radius: 2px; }
+.pred__verdict { margin: 8px 0 0; font-size: .92rem; }
+.pred__rows { display: grid; gap: 10px; margin-top: 18px; }
+.pred__row { display: grid; grid-template-columns: minmax(96px, 150px) 1fr auto auto; align-items: center; gap: 12px; }
+.pred__pts { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pred__n { font-size: .8rem; white-space: nowrap; min-width: 72px; text-align: right; }
+.pred__tip { margin: 16px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.pred__note { margin: 12px 0 0; font-size: .82rem; }
+.pred__form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0 4px; }
+.pred__form label { display: grid; gap: 4px; font-size: .9rem; }
+@media (max-width: 560px) {
+  .pred { padding: 16px; }
+  .pred__row { grid-template-columns: 1fr auto; row-gap: 4px; }
+  .pred__row .bar { grid-column: 1 / -1; grid-row: 2; }
+  .pred__n { display: none; }
+  .pred__form { grid-template-columns: 1fr; }
+}
+
+/* ===== Терминдер сөздігі ===== */
+.term__bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-top: 8px; }
+.term__q { flex: 1 1 260px; min-width: 0; }
+.terms { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-top: 18px; }
+.term { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+.term__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.term__en { font-size: 1.05rem; font-weight: 700; color: var(--kok); word-break: break-word; }
+.term__tag { font-size: .72rem; color: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.term__names { margin-top: 6px; }
+.term__d { margin: 8px 0 0; font-size: .92rem; }
+.term__ex { margin: 10px 0 0; font-size: .8rem; overflow-x: auto; }
+@media (max-width: 560px) { .terms { grid-template-columns: 1fr; } .term__bar .seg { overflow-x: auto; max-width: 100%; } }
+.dunno { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }

@@ -173,6 +173,14 @@
     if (!qs.length) { U.toast("Қайталауға келген сұрақ әзірге жоқ"); return; }
     startTest("adaptive:" + kind, kind === "due" ? "Аралықпен қайталау" : "Әлсіз тақырыптар", qs.slice(0, 20), { mode: "practice" });
   };
+  // ТГО: тек аналитикалық/сыни ойлау (математикасыз) — алдымен шешілмеген және қате сұрақтар
+  Shyn.launchAnalytics = function () {
+    var qs = Shyn.allQuestions().filter(function (q) { return q._subject === "fundamentals" && !q.missing && /^Аналитикалық ойлау/.test(q.topic || ""); });
+    var pr = function (q) { var x = Store.learning(q.id); return !x ? 2 : x.lastState !== "correct" ? 3 : 0; };
+    qs = U.shuffle(qs).sort(function (a, b) { return pr(b) - pr(a); }).slice(0, 20);
+    if (!qs.length) { U.toast("Аналитика сұрақтары табылмады"); return; }
+    startTest("analytics:" + Date.now(), "ТГО: тек аналитика (математикасыз)", qs, { mode: "practice" });
+  };
   Shyn.EXAM_SIZE = { english: 50, fundamentals: 30, algo: 30, db: 20 };
   Shyn.composeExam = function (subjects) {
     Shyn.allQuestions();
@@ -248,18 +256,20 @@
         '<div class="hero__side"><div class="countdown">' + countdown + '</div>' +
         '<div class="streak"><div class="streak__strip">' + strip + '</div><div class="streak__t">' + (streak ? "Қатарынан " + streak + " күн оқудасыз" : "Бүгін бастап, күн сайын аздап оқыңыз") + '</div></div></div>' +
       '</section>' +
+      (Shyn.predictHTML ? Shyn.predictHTML("home") : "") +
       (Shyn.planHTML ? Shyn.planHTML() : "") +
       (Shyn.Game ? Shyn.Game.homeHTML() : "") +
       (sessions ? '<section class="block"><h2>Жалғастыру</h2><div class="resumes">' + sessions + '</div></section>' : "") +
       '<section class="block"><h2>Бүгінгі жоспар</h2><div class="actions actions--4">' +
         action("review", "Қайталау", (due + wrong) ? (due ? due + " сұрақты қайталау уақыты келді" : "") + (due && wrong ? ", " : "") + (wrong ? wrong + " қате сұрақ күтіп тұр" : "") : "20 сұрақтық диагностика — әлсіз тақырыптарыңды анықтайды", due + wrong, due ? "Қайталау" : wrong ? "Қателерді шығару" : "Бастау", wrong ? '<a class="act__link" href="#/mistakes">Қателер дәптері · ' + wrong + '</a>' : "") +
         (Shyn.engInt ? action("eint", "Ағылшын интенсиві", Shyn.engInt().text, Shyn.engInt().left, Shyn.engInt().started ? "Бүгінгі тапсырмалар" : "Интенсивті бастау") : "") +
+        action("ana", "ТГО: тек аналитика", "Математикасыз 20 сұрақ: мәтін, қорытынды, дәлел, сыни ойлау. Алдымен шешілмегендері мен қателері", 0, "Бастау") +
         action("blitz", "Блиц · 60 секунд", "Комбо жина, рекордыңды жаң. Рекорд: " + (Shyn.Game ? Shyn.Game.state.blitzBest : 0), 0, "Ойнау") +
         action("explain", "Қарапайым тілмен", (Shyn.feynman ? Shyn.feynman.length : 24) + " қиын тақырып Фейнман әдісімен: ұқсатым, мысал, өзіңді тексер", 0, "Түсіну") +
       '</div></section>' +
       (Shyn.Game ? Shyn.Game.qotdHTML() : "");
 
-    if (Shyn.Game) Shyn.Game.bindHome(); if (Shyn.planBind) Shyn.planBind(view);
+    if (Shyn.Game) Shyn.Game.bindHome(); if (Shyn.planBind) Shyn.planBind(view); if (Shyn.predictBind) Shyn.predictBind(view);
     var sd = U.$("#setDate"); if (sd) sd.addEventListener("click", function () { Shyn.go("#/settings"); });
     U.$("#examBtn").addEventListener("click", openExamModal);
     U.on("[data-resume]", "click", function (e, el) { resumeSession(el.getAttribute("data-resume")); }, view);
@@ -267,7 +277,7 @@
     U.on("[data-act]", "click", function (e, el) {
       var a = el.getAttribute("data-act");
       if (a === "review") { if (due) Shyn.launchAdaptive("due"); else if (wrong) Shyn.launchMistakes(); else Shyn.launchAdaptive("weak"); }
-      else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "media") Shyn.go("#/media"); else if (a === "explain") Shyn.go("#/explain");
+      else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "ana") Shyn.launchAnalytics(); else if (a === "media") Shyn.go("#/media"); else if (a === "explain") Shyn.go("#/explain");
     }, view);
   });
   function action(key, title, text, count, cta, extra) {
@@ -538,7 +548,7 @@
       '<p class="explain__ans">Дұрыс жауап: <b>' + esc(q.correct.join(", ")) + '</b>' + (q.derived ? ' <span class="muted">(кілт талдау арқылы анықталған)</span>' : "") + '</p>' +
       '<div class="explain__t">' + Shyn.fmt(q.ex || "Түсіндірме кейін қосылады.") + '</div>' +
       (q.disputed ? '<p class="warn">Даулы жауап. ' + esc(q.dnote || "Ресми кілт осы нұсқаны есептейді, бірақ академиялық тұрғыдан ол қате болуы мүмкін.") + '</p>' : "") +
-      (r.state !== "correct" ? reasonHTML(q.id) + aiHTML(q.id) : "") + feynLink(q) + '</section>';
+      (r.state !== "correct" ? reasonHTML(q.id) : "") + feynLink(q) + aiHTML(q.id) + '</section>';
   }
   // Қате болса — сол тақырыпты «Қарапайым тілмен» түсіндіретін бетке сілтеме
   function feynLink(q) {
@@ -552,8 +562,39 @@
     return '<div class="reason"><span>Қатенің себебі:</span>' + Object.keys(REASONS).map(function (k) {
       return '<button class="conf__b' + (S.reasons[id] === k ? " is-on" : "") + '" data-reason="' + k + '" data-qid="' + esc(id) + '">' + REASONS[k] + '</button>'; }).join("") + '</div>';
   }
-  function aiHTML() { return ""; } // ЖИ түсіндірмесі алынып тасталды — әр сұрақта толық дайын түсіндірме бар
+  // «Түсінбедім»: сұрақ + нұсқалар + менің жауабым + дұрыс жауап → буферге (кез келген чатқа қоюға), немесе бірден Claude/ChatGPT-та ашу
+  function aiHTML(id) {
+    return '<div class="dunno"><button class="btn btn--line btn--sm" data-dunno="' + esc(id) + '">Түсінбедім — көшіру</button>' +
+      '<a class="btn btn--line btn--sm" target="_blank" rel="noopener" data-dunno-open="claude" data-qid="' + esc(id) + '" href="#">Claude-та сұрау</a>' +
+      '<a class="btn btn--line btn--sm" target="_blank" rel="noopener" data-dunno-open="chatgpt" data-qid="' + esc(id) + '" href="#">ChatGPT-та сұрау</a></div>';
+  }
+  function dunnoText(q) {
+    var NL = "\n", sel = S.answers[q.id] || [], r = Score.question(q, sel);
+    var opts = q.opts.map(function (o) { return o.l + ") " + o.t + (o.code ? NL + o.code : ""); }).join(NL);
+    var pass = q.passage ? "Мәтін:" + NL + q.passage + NL + NL : "";
+    return "Түсінбедім. Объясни этот вопрос из теста в магистратуру (КТ, пән: «" + ((Shyn.SUBJECT[q._subject] || {}).name || "") + "»)." + NL + NL + pass +
+      "Сұрақ: " + q.q + (q.code ? NL + q.code : "") + NL + NL + "Нұсқалар:" + NL + opts +
+      NL + NL + "Менің жауабым: " + (sel.length ? sel.join(", ") : "—") + " (" + (r.state === "correct" ? "дұрыс" : r.state === "partial" ? "ішінара" : "қате") + ")" +
+      NL + "Дұрыс жауап: " + q.correct.join(", ") + NL + NL +
+      "Объясни по методу Фейнмана на русском: (1) как 12-летнему, на примере из жизни; (2) глубже, почему верный ответ верный, а мой и остальные — нет; (3) 3 вопроса для самопроверки с ответами. Ключевые термины дай на казахском, русском и английском.";
+  }
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t);
+    return new Promise(function (ok, no) {
+      var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); try { document.execCommand("copy") ? ok() : no(); } catch (e) { no(e); } document.body.removeChild(ta);
+    });
+  }
   function bindAI(root) {
+    U.on("[data-dunno]", "click", function (e, btn) {
+      var q = Shyn.questionById(btn.getAttribute("data-dunno")); if (!q) return;
+      copyText(dunnoText(q)).then(function () { U.toast("Көшірілді. Чатқа қойыңыз (Ctrl+V)"); }, function () { U.toast("Көшіру мүмкін болмады"); });
+    }, root);
+    U.on("[data-dunno-open]", "click", function (e, a) {
+      var q = Shyn.questionById(a.getAttribute("data-qid")); if (!q) { e.preventDefault(); return; }
+      var t = dunnoText(q); if (t.length > 1800) t = dunnoText(Object.assign({}, q, { passage: "" })).slice(0, 1800);
+      a.href = (a.getAttribute("data-dunno-open") === "chatgpt" ? "https://chatgpt.com/?q=" : "https://claude.ai/new?q=") + encodeURIComponent(t);
+    }, root);
     U.on("[data-ai]", "click", function (e, btn) {
       if (!Shyn.AI.hasKey()) { Shyn.openAIModal(); return; }
       var id = btn.getAttribute("data-ai"), q = Shyn.questionById(id), out = btn.closest(".ai").querySelector(".ai__out");
