@@ -174,14 +174,14 @@
     startTest("adaptive:" + kind, kind === "due" ? "Аралықпен қайталау" : "Әлсіз тақырыптар", qs.slice(0, 20), { mode: "practice" });
   };
   // ТГО: тек аналитикалық/сыни ойлау (математикасыз) — алдымен шешілмеген және қате сұрақтар
-  Shyn.launchAnalytics = function () {
+  Shyn.launchAnalytics = function (scope, title) {
     var qs = Shyn.allQuestions().filter(function (q) { return q._subject === "fundamentals" && !q.missing && /^Аналитикалық ойлау/.test(q.topic || ""); });
     var pr = function (q) { var x = Store.learning(q.id); return !x ? 2 : x.lastState !== "correct" ? 3 : 0; };
     qs = U.shuffle(qs).sort(function (a, b) { return pr(b) - pr(a); }).slice(0, 20);
     if (!qs.length) { U.toast("Аналитика сұрақтары табылмады"); return; }
-    startTest("analytics:" + Date.now(), "ТГО: тек аналитика (математикасыз)", qs, { mode: "practice" });
+    startTest(scope || "analytics:" + Date.now(), title || "ТГО: тек аналитика (математикасыз)", qs, { mode: "practice" });
   };
-  Shyn.EXAM_SIZE = { english: 50, fundamentals: 30, algo: 30, db: 20 };
+  Shyn.EXAM_SIZE = { english: 50, fundamentals: 20, algo: 30, db: 20 }; // КТ: ТГО — 20 сұрақ (30 балл)
   Shyn.composeExam = function (subjects) {
     Shyn.allQuestions();
     var qs = [], picked = [];
@@ -257,19 +257,19 @@
         '<div class="streak"><div class="streak__strip">' + strip + '</div><div class="streak__t">' + (streak ? "Қатарынан " + streak + " күн оқудасыз" : "Бүгін бастап, күн сайын аздап оқыңыз") + '</div></div></div>' +
       '</section>' +
       (Shyn.predictHTML ? Shyn.predictHTML("home") : "") +
-      (Shyn.planHTML ? Shyn.planHTML() : "") +
-      (Shyn.Game ? Shyn.Game.homeHTML() : "") +
+      (Shyn.todayHTML ? Shyn.todayHTML() : (Shyn.planHTML ? Shyn.planHTML() : "")) +
       (sessions ? '<section class="block"><h2>Жалғастыру</h2><div class="resumes">' + sessions + '</div></section>' : "") +
-      '<section class="block"><h2>Бүгінгі жоспар</h2><div class="actions actions--4">' +
+      '<section class="block"><h2>Тағы жаттығу</h2><div class="actions actions--4">' +
         action("review", "Қайталау", (due + wrong) ? (due ? due + " сұрақты қайталау уақыты келді" : "") + (due && wrong ? ", " : "") + (wrong ? wrong + " қате сұрақ күтіп тұр" : "") : "20 сұрақтық диагностика — әлсіз тақырыптарыңды анықтайды", due + wrong, due ? "Қайталау" : wrong ? "Қателерді шығару" : "Бастау", wrong ? '<a class="act__link" href="#/mistakes">Қателер дәптері · ' + wrong + '</a>' : "") +
-        (Shyn.engInt ? action("eint", "Ағылшын интенсиві", Shyn.engInt().text, Shyn.engInt().left, Shyn.engInt().started ? "Бүгінгі тапсырмалар" : "Интенсивті бастау") : "") +
+        action("map", "Пән картасы", "Әр пәннің құрылымы: КТ-да қай тақырыптан неше сұрақ, сенің дәлдігің, сабақ пен жаттығу", 0, "Ашу") +
         action("ana", "ТГО: тек аналитика", "Математикасыз 20 сұрақ: мәтін, қорытынды, дәлел, сыни ойлау. Алдымен шешілмегендері мен қателері", 0, "Бастау") +
         action("blitz", "Блиц · 60 секунд", "Комбо жина, рекордыңды жаң. Рекорд: " + (Shyn.Game ? Shyn.Game.state.blitzBest : 0), 0, "Ойнау") +
         action("explain", "Қарапайым тілмен", (Shyn.feynman ? Shyn.feynman.length : 24) + " қиын тақырып Фейнман әдісімен: ұқсатым, мысал, өзіңді тексер", 0, "Түсіну") +
       '</div></section>' +
+      (Shyn.Game ? Shyn.Game.homeHTML() : "") +
       (Shyn.Game ? Shyn.Game.qotdHTML() : "");
 
-    if (Shyn.Game) Shyn.Game.bindHome(); if (Shyn.planBind) Shyn.planBind(view); if (Shyn.predictBind) Shyn.predictBind(view);
+    if (Shyn.Game) Shyn.Game.bindHome(); if (Shyn.planBind) Shyn.planBind(view); if (Shyn.predictBind) Shyn.predictBind(view); if (Shyn.todayBind) Shyn.todayBind(view);
     var sd = U.$("#setDate"); if (sd) sd.addEventListener("click", function () { Shyn.go("#/settings"); });
     U.$("#examBtn").addEventListener("click", openExamModal);
     U.on("[data-resume]", "click", function (e, el) { resumeSession(el.getAttribute("data-resume")); }, view);
@@ -277,7 +277,7 @@
     U.on("[data-act]", "click", function (e, el) {
       var a = el.getAttribute("data-act");
       if (a === "review") { if (due) Shyn.launchAdaptive("due"); else if (wrong) Shyn.launchMistakes(); else Shyn.launchAdaptive("weak"); }
-      else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "ana") Shyn.launchAnalytics(); else if (a === "media") Shyn.go("#/media"); else if (a === "explain") Shyn.go("#/explain");
+      else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "ana") Shyn.launchAnalytics(); else if (a === "map") Shyn.go("#/map"); else if (a === "media") Shyn.go("#/media"); else if (a === "explain") Shyn.go("#/explain");
     }, view);
   });
   function action(key, title, text, count, cta, extra) {

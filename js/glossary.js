@@ -32,8 +32,9 @@
     n.textContent = L.length + " термин";
     box.innerHTML = L.length ? L.map(item).join("") : '<p class="muted">Ештеңе табылмады. Басқа тілде жазып көріңіз: мысалы, «кесте», «таблица» немесе «table».</p>';
   }
-  Shyn.route("terms", function () {
+  Shyn.route("terms", function (args) {
     var view = document.getElementById("view");
+    if (args && args[0] && /^(db|algo|prog)$/.test(args[0])) G.s = args[0];
     if (!Shyn.glossary) { view.innerHTML = '<header class="page-head"><h1>Терминдер сөздігі</h1><p class="muted">Сөздік жүктелмеді. Бетті жаңартыңыз.</p></header>'; return; }
     view.innerHTML = '<header class="page-head"><h1>Терминдер сөздігі</h1>' +
       '<p class="muted">Кодтағы ағылшын сөздері қазақша және орысша: анықтамасы мен мысалы бар. Кез келген тілде іздеңіз.</p></header>' +

@@ -15,6 +15,8 @@
   function daysLeft() { return Math.round((new Date(examDay() + "T12:00:00") - new Date(today() + "T12:00:00")) / 864e5); }
   function md(dk) { var d = new Date(dk + "T12:00:00"); return d.getDate() + " " + U.MONTHS[d.getMonth()]; }
   function addDays(dk, n) { var d = new Date(dk + "T12:00:00"); d.setDate(d.getDate() + n); return U.dayKey(d); }
+  // Диагностика орнына толық сынақ (ағылшын бар, кемінде 3 пән) те есептеледі
+  function diagDone() { return Store.history().some(function (r) { return r.key === "express:diag" || (r.subj && r.subj.english && Object.keys(r.subj).length >= 3); }); }
   function ran(scope) { return Store.history().some(function (r) { return r.key === scope; }); }
   function view() { return document.getElementById("view"); }
 
@@ -103,7 +105,7 @@
   }
   function tasks(dk) {
     var t = dayType(dk), T = [];
-    if (!ran("express:diag")) T.push({ k: "diag", t: "Диагностика: 50 сұрақ КТ форматында", m: "Таймермен, 50 минут. Әлсіз жерлеріңді анықтайды — жоспар соған бейімделеді", done: false });
+    if (!diagDone()) T.push({ k: "diag", t: "Диагностика: 50 сұрақ КТ форматында", m: "Таймермен, 50 минут. Әлсіз жерлеріңді анықтайды — жоспар соған бейімделеді", done: false });
     if (t === "mock") T.push({ k: "mock", t: "Толық пробник: 50 сұрақ", m: "8:00-де, нақты емтихандағыдай таймермен", scope: "express:mock:" + dk });
     else if (t === "review") T.push({ k: "mist", t: "Тек қайталау: ағылшын қателері", m: "Жаңа тақырып жоқ. Ертерек жат", scope: "express:mist:" + dk });
     else if (t === "study") {
@@ -127,6 +129,8 @@
     }
   }
 
+  Shyn.expressToday = function () { return tasks(today()); };
+  Shyn.expressRun = launch;
   Shyn.route("express", function () {
     var v = view(), left = daysLeft(), st = secStats(), dk = today();
     var T = tasks(dk), done = T.filter(function (x) { return x.done; }).length;

@@ -262,6 +262,15 @@
       (next < 0 ? "Бүгінгі жоспар орындалды. Ертең жалғастыр." : "Келесі: " + esc(D.tasks[next][1])) + '</p></div>' +
       '<div class="inline">' + (next >= 0 ? '<button class="btn btn--primary" data-prun="' + day + ':' + next + '">Бастау</button>' : "") + '<a class="btn btn--line" href="#/plan">Жоспар</a></div></section>';
   };
+  // Басты беттегі біріккен «Бүгін» тізімі үшін: бүгінгі (сығылған болса — бірнеше) жоспар күнінің тапсырмалары
+  Shyn.planToday = function () {
+    var c = current(), items = [];
+    if (c.day < 1 || c.day > N) return { c: c, items: items };
+    for (var dd = c.from || c.day; dd <= c.day; dd++) DAYS[dd - 1].tasks.forEach(function (x, i) { items.push({ d: dd, i: i, k: x[0], label: x[1], done: isDone(dd, i), id: scope(dd, i) }); });
+    return { c: c, items: items, title: DAYS[c.day - 1].t, N: N };
+  };
+  Shyn.planRun = run;
+  Shyn.planStart = function () { P.start = dayKey(); P.done = {}; save(); };
   Shyn.planBind = function (root) {
     var st = root.querySelector("#pmStart"); if (st) st.addEventListener("click", function () { P.start = dayKey(); P.done = {}; save(); Shyn.go("#/plan"); });
     U.on("[data-prun]", "click", function (e, el) { var a = el.getAttribute("data-prun").split(":"); run(+a[0], +a[1]); }, root);
