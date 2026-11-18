@@ -18,8 +18,7 @@
       tabs: [["#/map/algo", "Алгоритм", SUBJ_SUB.algo.slice(1).map(function (t) { return t[0]; }).concat(["#/lab/sort", "#/lab/search", "#/lab/ds", "#/lab/hash", "#/lab/tree", "#/lab/graph", "#/lab/cheat", "#/sorting", "#/cheats/trap", "#/terms/prog", "#/explain", "#/cheats", "#/formulas", "#/terms", "#/cards", "#/map"])],
              ["#/map/db", "ДҚ", SUBJ_SUB.db.slice(1).map(function (t) { return t[0]; }).concat(["#/lab/join", "#/lab/nf"])],
              ["#/map/english", "Ағылшын", ["#/express", "#/listen", "#/eng", "#/synonyms", "#/explain/english", "#/eng/intensive"]],
-             ["#/map/fundamentals", "ТГО", SUBJ_SUB.fundamentals.slice(1).map(function (t) { return t[0]; }).concat(["#/cheats/tgo"])],
-             ["#/media", "Видео"]],
+             ["#/map/fundamentals", "ТГО", SUBJ_SUB.fundamentals.slice(1).map(function (t) { return t[0]; }).concat(["#/cheats/tgo"])]],
       sub: { "#/map/algo": SUBJ_SUB.algo, "#/map/db": SUBJ_SUB.db, "#/map/english": SUBJ_SUB.english, "#/map/fundamentals": SUBJ_SUB.fundamentals },
       sub2: {
         "#/eng": [["#/eng", "Оқу жолы", ["#/eng/t", "#/eng/l"]], ["#/eng/review", "Қайталау"]],
