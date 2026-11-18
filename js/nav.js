@@ -2,20 +2,46 @@
 (function (global) {
   "use strict";
   var Shyn = global.Shyn;
+  /* Құрылым «пәндер бойынша»: Басты (бүгін, жоспар) · Пәндер (әр пәннің ішінде бәрі) · Тесттер · Прогресс.
+     tabs[i] = [href, атау, [қосымша сәйкес келетін hash-тар]]; sub[href] — 2-деңгей; sub2[href] — 3-деңгей. */
+  var SUBJ_SUB = {
+    algo: [["#/map/algo", "Құрылым"], ["#/explain/algo", "Сабақтар"], ["#/cheats/algo", "Шпаргалка", ["#/cheats/trap", "#/sorting"]], ["#/formulas/algo", "Формулалар"], ["#/terms/algo", "Терминдер", ["#/terms/prog"]], ["#/lab", "Зертхана"], ["#/cards/algo", "Карточкалар"]],
+    db: [["#/map/db", "Құрылым"], ["#/explain/db", "Сабақтар"], ["#/cheats/sql", "Шпаргалка"], ["#/formulas/db", "Формулалар"], ["#/terms/db", "Терминдер"], ["#/lab/sql", "Зертхана", ["#/lab/join", "#/lab/nf"]], ["#/cards/db", "Карточкалар"]],
+    english: [["#/map/english", "Құрылым"], ["#/express", "Жедел", ["#/eng/intensive"]], ["#/listen", "Тыңдалым"], ["#/eng", "Грамматика", ["#/eng/t", "#/eng/l", "#/eng/review"]], ["#/eng/table", "Шақтар", ["#/eng/build", "#/eng/game"]], ["#/eng/verbs", "Сөздер", ["#/eng/pron", "#/synonyms"]], ["#/explain/english", "Сабақтар"]],
+    fundamentals: [["#/map/fundamentals", "Құрылым"], ["#/explain/fundamentals", "Сабақтар"], ["#/cheats/ana", "Шпаргалка", ["#/cheats/tgo"]], ["#/formulas/fundamentals", "Формулалар"], ["#/cards/fundamentals", "Карточкалар"]]
+  };
   var SECTIONS = [
-    { id: "home", name: "Басты", href: "#/", routes: ["home"] },
-    { id: "tests", name: "Тесттер", href: "#/variants", routes: ["variants", "plan", "mistakes", "blitz", "bank"],
-      tabs: [["#/variants", "Нұсқалар"], ["#/plan", "15 күн"], ["#/mistakes", "Қателер"], ["#/blitz", "Блиц"], ["#/bank", "Сұрақтар қоры"]] },
-    { id: "eng", name: "Ағылшын", href: "#/eng/intensive", routes: ["eng", "lesson", "synonyms", "express", "listen"],
-      tabs: [["#/express", "Жедел"], ["#/listen", "Тыңдалым"], ["#/eng/intensive", "Интенсив"], ["#/eng", "Грамматика", ["#/eng/t", "#/eng/l"]], ["#/eng/review", "Қайталау"], ["#/eng/table", "Шақтар", ["#/eng/build"]],
-             ["#/eng/verbs", "Сөздер", ["#/eng/pron", "#/synonyms"]], ["#/eng/game", "Ойын"]],
-      sub: { "#/eng/verbs": [["#/eng/verbs", "Етістіктер"], ["#/eng/pron", "Есімдіктер"], ["#/synonyms", "Синонимдер"]],
-             "#/eng/table": [["#/eng/table", "12 шақ кестесі"], ["#/eng/build", "Шақ құрастырғыш"]] } },
-    { id: "learn", name: "Оқу", href: "#/explain", routes: ["map", "explain", "terms", "formulas", "hard", "media", "lab", "cheats", "cards", "sorting"],
-      tabs: [["#/map", "Пән картасы"], ["#/explain", "Түсіну"], ["#/terms", "Терминдер"], ["#/formulas", "Формулалар"], ["#/hard", "Қиын есептер"], ["#/media", "Видео"], ["#/lab", "Зертхана"], ["#/cheats", "Шпаргалка", ["#/sorting"]], ["#/cards", "Карточкалар"]] },
+    { id: "home", name: "Басты", href: "#/", routes: ["home", "plan"],
+      tabs: [["#/", "Бүгін"], ["#/plan", "Жоспар"]] },
+    { id: "subj", name: "Пәндер", href: "#/map/algo",
+      routes: ["map", "explain", "terms", "formulas", "cheats", "cards", "sorting", "lab", "media", "express", "listen", "eng", "lesson", "synonyms"],
+      tabs: [["#/map/algo", "Алгоритм", SUBJ_SUB.algo.slice(1).map(function (t) { return t[0]; }).concat(["#/lab/sort", "#/lab/search", "#/lab/ds", "#/lab/hash", "#/lab/tree", "#/lab/graph", "#/lab/cheat", "#/sorting", "#/cheats/trap", "#/terms/prog", "#/explain", "#/cheats", "#/formulas", "#/terms", "#/cards", "#/map"])],
+             ["#/map/db", "ДҚ", SUBJ_SUB.db.slice(1).map(function (t) { return t[0]; }).concat(["#/lab/join", "#/lab/nf"])],
+             ["#/map/english", "Ағылшын", ["#/express", "#/listen", "#/eng", "#/synonyms", "#/explain/english", "#/eng/intensive"]],
+             ["#/map/fundamentals", "ТГО", SUBJ_SUB.fundamentals.slice(1).map(function (t) { return t[0]; }).concat(["#/cheats/tgo"])],
+             ["#/media", "Видео"]],
+      sub: { "#/map/algo": SUBJ_SUB.algo, "#/map/db": SUBJ_SUB.db, "#/map/english": SUBJ_SUB.english, "#/map/fundamentals": SUBJ_SUB.fundamentals },
+      sub2: {
+        "#/eng": [["#/eng", "Оқу жолы", ["#/eng/t", "#/eng/l"]], ["#/eng/review", "Қайталау"]],
+        "#/eng/table": [["#/eng/table", "12 шақ кестесі"], ["#/eng/build", "Шақ құрастырғыш"], ["#/eng/game", "Шақ жарысы"]],
+        "#/eng/verbs": [["#/eng/verbs", "Етістіктер"], ["#/eng/pron", "Есімдіктер"], ["#/synonyms", "Синонимдер"]],
+        "#/express": [["#/express", "Жедел жоспар"], ["#/eng/intensive", "21 күндік интенсив"]],
+        "#/cheats/algo": [["#/cheats/algo", "Формулалар мен кестелер"], ["#/cheats/trap", "Жиі тұзақтар"], ["#/sorting", "Сұрыптау күрделілігі"]],
+        "#/cheats/ana": [["#/cheats/ana", "Аналитикалық ойлау"], ["#/cheats/tgo", "Математика"]]
+      } },
+    { id: "tests", name: "Тесттер", href: "#/variants", routes: ["variants", "mistakes", "blitz", "bank", "hard"],
+      tabs: [["#/variants", "Нұсқалар"], ["#/mistakes", "Қателер"], ["#/blitz", "Блиц"], ["#/hard", "Қиын есептер"], ["#/bank", "Сұрақтар қоры"]] },
     { id: "me", name: "Прогресс", href: "#/stats", routes: ["stats", "history", "me", "settings", "install", "more"],
-      tabs: [["#/stats", "Статистика"], ["#/history", "Тарих"], ["#/me", "Жетістіктер"], ["#/settings", "Баптаулар", ["#/install"]]] }
+      tabs: [["#/stats", "Статистика", ["#/history"]], ["#/me", "Жетістіктер"], ["#/settings", "Баптаулар", ["#/install"]]],
+      sub: { "#/stats": [["#/stats", "Көрсеткіштер"], ["#/history", "Тесттер тарихы"]] } }
   ];
+  // Сабақ беттері (#/explain/<id>) өз пәнінің қойындысында жанып тұрсын
+  Shyn.onReady && Shyn.onReady(function () {
+    var map = { algo: 0, db: 1, english: 2, fundamentals: 3 }, tabs = SECTIONS[1].tabs;
+    (Shyn.feynman || []).forEach(function (t) { var i = map[t.s]; if (i !== undefined) tabs[i][2].push("#/explain/" + t.id); });
+    var subs = { algo: SUBJ_SUB.algo[1], db: SUBJ_SUB.db[1], english: SUBJ_SUB.english[6], fundamentals: SUBJ_SUB.fundamentals[1] };
+    (Shyn.feynman || []).forEach(function (t) { var s = subs[t.s]; if (s) (s[2] = s[2] || []).push("#/explain/" + t.id); });
+  });
   Shyn.SECTIONS = SECTIONS;
   function sectionOf(route) { for (var i = 0; i < SECTIONS.length; i++) if (SECTIONS[i].routes.indexOf(route) >= 0) return SECTIONS[i]; return null; }
   function match(hash, tab) {
@@ -49,8 +75,12 @@
       var t = activeTab(sec, hash);
       var html = bar(sec.tabs, t, "secnav");
       if (t && sec.sub && sec.sub[t[0]]) {
-        var st = null, sc = -1; sec.sub[t[0]].forEach(function (x) { var s = match(hash, [x[0]]); if (s > sc) { sc = s; st = x; } });
-        html += bar(sec.sub[t[0]], st, "subnav");
+        var st = null, sc = -1; sec.sub[t[0]].forEach(function (x) { var s = match(hash, x); if (s > sc) { sc = s; st = x; } });
+        html += bar(sec.sub[t[0]], sc >= 0 ? st : null, "subnav");
+        if (st && sc >= 0 && sec.sub2 && sec.sub2[st[0]]) {
+          var s2 = null, c2 = -1; sec.sub2[st[0]].forEach(function (x) { var s = match(hash, x); if (s > c2) { c2 = s; s2 = x; } });
+          html += bar(sec.sub2[st[0]], c2 >= 0 ? s2 : null, "subnav subnav--2");
+        }
       }
       view.insertAdjacentHTML("afterbegin", html);
       if (Shyn._swipeDir) { var d = Shyn._swipeDir; Shyn._swipeDir = null; view.classList.remove("view-in-r", "view-in-l"); void view.offsetWidth; view.classList.add("view-in-" + d); }

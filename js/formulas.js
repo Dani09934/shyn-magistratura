@@ -169,6 +169,6 @@
   }
 
   Shyn.formulas = F;
-  Shyn.route("formulas", function () { formulasView(document.getElementById("view"), ""); });
+  Shyn.route("formulas", function (args) { if (args && /^(algo|db|english|fundamentals|all)$/.test(args[0] || "")) Shyn._fmlSubj = args[0]; formulasView(document.getElementById("view"), ""); });
   Shyn.route("hard", function () { hardView(document.getElementById("view")); });
 })(window);

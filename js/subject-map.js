@@ -98,7 +98,7 @@
     });
     var prio = rows.filter(function (r) { return r.loss; }).sort(function (a, b) { return b.loss - a.loss; }).slice(0, 3);
     v.innerHTML = '<header class="page-head"><h1>Пән картасы</h1><p class="muted">Әр пән КТ-да қалай құрылған, қай тақырыптан неше сұрақ келеді және сен қай жерде балл жоғалтасың.</p></header>' +
-      '<div class="seg map__tabs" role="tablist">' + ORDER.map(function (k) { return '<a role="tab" class="' + (k === sub ? "is-on" : "") + '" href="#/map/' + k + '">' + esc(SPEC[k].name.split(" ")[0] === "Оқуға" ? "ТГО" : SPEC[k].name.split(" ")[0]) + '</a>'; }).join("") + '</div>' +
+
       '<section class="block map__head"><h2>' + esc(S.name) + '</h2><p class="map__big">' + esc(S.head) + '</p><p>' + esc(S.rule) + '</p>' +
         (prio.length ? '<p class="map__prio"><b>Ең алдымен:</b> ' + prio.map(function (r) { return '<button class="linkbtn" data-mgo="' + r.i + '">' + esc(r.x.b.t) + '</button> (~' + r.loss.toFixed(1) + ' балл)'; }).join(", ") + '</p>' : "") +
         (S.terms ? '<a class="btn btn--line btn--sm" href="#/terms/' + S.terms + '">Терминдер сөздігі</a> ' : "") + '<a class="btn btn--line btn--sm" href="#/cheats/spec">Спецификация</a></section>' +

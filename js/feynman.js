@@ -280,7 +280,15 @@
     return Shyn.allQuestions().filter(function (q) { return q._subject === t.s && re.test((q.topic || "") + " " + (q.topicFine || "") + " " + q.q); }).length;
   }
 
-  function listView(view) {
+  function listView(view, only) {
+    var G0 = GROUPS; if (only) GROUPS = GROUPS.filter(function (g) { return g[0] === only; });
+    try { listView0(view, only); } finally { GROUPS = G0; }
+  }
+  function listView0(view, only) {
+    var T0 = T; T = only ? T.filter(function (t) { return t.s === only; }) : T;
+    try { listView1(view); } finally { T = T0; }
+  }
+  function listView1(view) {
     var done = T.filter(function (t) { return S.ok[t.id]; }).length;
     view.innerHTML = '<header class="page-head"><h1>Қарапайым тілмен</h1><p class="muted">Қиын тақырыптар Фейнман әдісімен: алдымен бір сөйлеммен, сосын өмірдегі ұқсатыммен, содан кейін ғана формула мен код. Соңында тақырыпты өз сөзіңмен жазып, өзіңді тексересің — жаза алмасаң, сол жерді әлі түсінбегенсің.</p>' +
       '<div class="fy-prog"><div class="fy-prog__bar"><i style="width:' + Math.round(done / T.length * 100) + '%"></i></div><span>' + done + ' / ' + T.length + ' тақырып түсінікті</span></div></header>' +
@@ -327,6 +335,6 @@
   Shyn.route("explain", function (args) {
     var view = document.getElementById("view"), id = args && args[0];
     var t = id && T.filter(function (x) { return x.id === id; })[0];
-    if (t) oneView(view, t); else listView(view);
+    if (t) oneView(view, t); else listView(view, /^(algo|db|english|fundamentals)$/.test(id || "") ? id : null);
   });
 })(window);

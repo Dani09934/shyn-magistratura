@@ -12,8 +12,9 @@
     });
     C.deck = C.shuffle ? U.shuffle(list) : list; C.pos = Math.min(C.pos, Math.max(0, C.deck.length - 1)); C.flipped = false;
   }
-  Shyn.route("cards", function () {
+  Shyn.route("cards", function (args) {
     var subs = []; Shyn.cards.forEach(function (c) { if (subs.indexOf(c.subject) < 0) subs.push(c.subject); });
+    if (args && args[0] && subs.indexOf(args[0]) >= 0 && (!C.subjects || C.subjects.join() !== args[0])) { C.subjects = [args[0]]; C.topic = ""; C.pos = 0; buildDeck(); }
     if (!C.subjects) { C.subjects = subs.slice(); buildDeck(); }
     var pool = Shyn.cards.filter(function (c) { return C.subjects.indexOf(c.subject) >= 0; });
     var know = pool.filter(function (c) { return Store.cardStatus(c.id) === "know"; }).length;
