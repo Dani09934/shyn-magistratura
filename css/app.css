@@ -1619,3 +1619,47 @@ body.has-ibanner #view { padding-bottom: 96px; }
 .term__ex { margin: 10px 0 0; font-size: .8rem; overflow-x: auto; }
 @media (max-width: 560px) { .terms { grid-template-columns: 1fr; } .term__bar .seg { overflow-x: auto; max-width: 100%; } }
 .dunno { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+
+/* ===== Ағылшын: жедел режим ===== */
+.xp-strip { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; }
+.xp-day { flex: none; min-width: 52px; text-align: center; border: 1px solid var(--line); border-radius: var(--radius-s); padding: 6px 4px; font-weight: 700; background: var(--surface); display: flex; flex-direction: column; }
+.xp-day small { font-weight: 500; font-size: .66rem; color: var(--soft); min-height: 1em; }
+.xp-day.is-today { border-color: var(--gold); box-shadow: inset 0 0 0 2px var(--gold); }
+.xp-day--mock { background: color-mix(in srgb, var(--gold) 14%, var(--surface)); }
+.xp-day--review { background: color-mix(in srgb, var(--kok) 12%, var(--surface)); }
+.xp-day--exam { background: var(--ink); color: var(--bg); } .xp-day--exam small { color: var(--bg); }
+.xp-secs { display: grid; gap: 10px; margin: 6px 0 12px; }
+.xp-sec { display: grid; grid-template-columns: 170px 1fr auto; gap: 12px; align-items: center; }
+.xp-sec span { font-size: .85rem; color: var(--soft); white-space: nowrap; }
+.xp-tips ol { padding-left: 20px; line-height: 1.6; }
+/* ===== Тыңдалым тренажері ===== */
+.xl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 18px; }
+.xl-card { display: flex; flex-direction: column; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-s); padding: 10px 12px; color: inherit; text-decoration: none; }
+.xl-card:hover { border-color: var(--gold); } .xl-card.is-done { border-left: 4px solid var(--ok); }
+.xl-card small, .xl-card span { color: var(--soft); font-size: .8rem; }
+.xl-steps { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 4px 0 0; }
+.xl-steps li { display: flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px 3px 4px; }
+.xl-steps li span { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); font-weight: 700; font-size: .75rem; }
+.xl-steps li.is-on { color: var(--ink); border-color: var(--gold); } .xl-steps li.is-on span { background: var(--gold); color: var(--gold-ink); }
+.xl-steps li.is-done span { background: var(--ok); color: #fff; }
+.xl-box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+.xl-box h2 { margin-top: 0; }
+.xl-pre { padding-left: 20px; display: grid; gap: 8px; }
+.xl-pre small { display: block; color: var(--soft); }
+.xl-q { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.xl-q p { margin: 0 0 6px; }
+.xl-opts { display: grid; gap: 4px; }
+.xl-opts label { display: flex; gap: 8px; align-items: baseline; padding: 6px 8px; border-radius: var(--radius-s); cursor: pointer; }
+.xl-opts label:hover { background: var(--surface-2); }
+.xl-res { padding-left: 20px; display: grid; gap: 6px; }
+.xl-res .is-ok { color: var(--ok); } .xl-res .is-no { color: var(--no); }
+.xl-res li > * { color: var(--ink); }
+.xl-sents { display: grid; gap: 4px; margin-top: 10px; }
+.xl-sent { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: start; padding: 6px 8px; border-radius: var(--radius-s); }
+.xl-sent.is-key { background: color-mix(in srgb, var(--gold) 16%, transparent); }
+.xl-sent em { grid-column: 2; font-style: normal; font-size: .78rem; color: var(--gold); font-weight: 700; }
+.xl-play { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+.xl-in { width: 100%; margin-top: 12px; font-size: 1rem; }
+.xl-diff { line-height: 1.9; }
+.xl-w { padding: 1px 4px; border-radius: 4px; } .xl-w.is-ok { background: var(--ok-tint); color: var(--ok); } .xl-w.is-no { background: var(--no-tint); color: var(--no); text-decoration: underline; }
+@media (max-width: 560px) { .xp-sec { grid-template-columns: 1fr auto; } .xp-sec .bar { grid-column: 1 / -1; grid-row: 2; } .xl-box { padding: 14px; } }

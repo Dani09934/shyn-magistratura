@@ -1,7 +1,7 @@
 /* Шың — service worker: сайтты басты экранға орнатуға және интернетсіз ашуға мүмкіндік береді.
    Бұл файл tools/gen_sw.py арқылы жасалады — қолмен өзгертпеңіз.
    Стратегия: алдымен желі (әрқашан жаңа нұсқа), желі жоқ болса ғана кэш. Ескі кэштер толық өшіріледі. */
-var VERSION = "shyn-e229c9b70a";
+var VERSION = "shyn-c6d76374b9";
 var PRECACHE = [
 "./",
 "index.html",
@@ -12,6 +12,7 @@ var PRECACHE = [
 "js/boost.js",
 "js/cheats.js",
 "js/core.js",
+"js/eng-express.js",
 "js/eng-intensive.js",
 "js/english.js",
 "js/extras.js",

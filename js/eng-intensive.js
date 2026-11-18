@@ -113,6 +113,7 @@
   }
 
   Shyn._engPickG = function (n) { return pickG(n); };
+  Shyn._engData = data; Shyn._engMock = mock; Shyn._engNext = nextGroup; Shyn._engSec = secOf;
   Shyn.engIntensive = function () {
     var d = data(), st = { L: stat(d.groups.L.reduce(function (a, g) { return a.concat(g.qs); }, [])), G: stat(d.G), R: stat(d.groups.R.reduce(function (a, g) { return a.concat(g.qs); }, [])) };
     var weakest = ["L", "G", "R"].filter(function (k) { return st[k].pct !== null; }).sort(function (a, b) { return st[a].pct - st[b].pct; })[0];
