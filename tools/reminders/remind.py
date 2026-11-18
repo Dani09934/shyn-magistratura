@@ -2,7 +2,7 @@
 GitHub Actions іске қосады (.github/workflows/reminders.yml). Кілттер — тек GitHub Secrets-те:
 TELEGRAM_TOKEN, TELEGRAM_CHAT_ID. Жергілікті тексеру (жібермейді):  python tools/reminders/remind.py --dry 2026-11-20
 Тек стандартты кітапхана."""
-import datetime as dt, json, os, random, sys, urllib.request, urllib.parse
+import datetime as dt, glob, html, json, os, random, sys, urllib.request, urllib.parse
 
 TZ = dt.timezone(dt.timedelta(hours=5))   # Қазақстан (UTC+5)
 EXAM = dt.date(2026, 11, 28)
@@ -49,6 +49,34 @@ MOTIV = [
     "Бүгін өзіңе уәде бердің. Сөзіңде тұр.",
 ]
 
+def esc(x): return html.escape(x, quote=False)
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_Q = None
+def questions():
+    """data/sets ішінен телефонда оқуға ыңғайлы алгоритм/ДҚ сұрақтары (мәтінсіз, қысқа, даулы емес)."""
+    global _Q
+    if _Q is None:
+        _Q = {"algo": [], "db": []}
+        for f in sorted(glob.glob(os.path.join(ROOT, "data", "sets", "v*-*.js"))):
+            t = open(f, encoding="utf-8").read(); d = json.loads(t[t.index("(") + 1:t.rindex(")")])
+            if d["subject"] not in _Q: continue
+            for q in d["questions"]:
+                if q.get("missing") or q.get("passage") or q.get("audio") or q.get("disputed") or len(q["q"]) > 350: continue
+                if any(len(o.get("t") or "") > 120 or o.get("code") for o in q["opts"]) or len(q.get("code") or "") > 300: continue
+                _Q[d["subject"]].append(q)
+    return _Q
+
+def quiz_html(now, subject):
+    pool = questions().get(subject) or []
+    if not pool: return ""
+    q = random.Random(now.strftime("%Y%m%d%H") + subject).choice(pool)
+    e = esc
+    opts = "\n".join(e(o["l"] + ") " + (o.get("t") or "")) for o in q["opts"])
+    code = "\n<pre>" + e(q["code"]) + "</pre>" if q.get("code") else ""
+    kind = "бір немесе бірнеше жауап" if q.get("multi") else "бір жауап"
+    return ("\n\n🧩 <b>Сұрақ (" + ("Алгоритм" if subject == "algo" else "ДҚ") + ", " + kind + "):</b>\n" + e(q["q"]) + code + "\n" + opts +
+            "\n\nЖауап: <tg-spoiler>" + e(", ".join(q["correct"])) + " — " + e((q.get("ex") or "")[:600]) + "</tg-spoiler>")
+
 def hm(s, d):
     h, m = map(int, s.split(":"))
     return dt.datetime.combine(d, dt.time(h, m), TZ)
@@ -82,11 +110,11 @@ def message(now):
     wake, bed = SLEEP.get(d.isoformat(), ("09:00", "00:00"))
     if now < hm(wake, d) - dt.timedelta(minutes=20): return None          # әлі ұйықтап жатыр
     if d == EXAM:
-        return ("🎯 БҮГІН — ЕМТИХАН, 8:00\n\nСен дайынсың. Асықпа, әр сұрақты соңына дейін оқы.\n"
+        return esc("🎯 БҮГІН — ЕМТИХАН, 8:00\n\nСен дайынсың. Асықпа, әр сұрақты соңына дейін оқы.\n"
                 "Алдымен білетіндерің, қиындарын белгілеп, соңында орал. Бос сұрақ қалдырма.\nСәттілік! 💪") if now.hour < 8 else None
     bh, bm = map(int, bed.split(":")); bed_dt = hm(bed, d) + (dt.timedelta(days=1) if bh < 6 else dt.timedelta())
     if now >= bed_dt - dt.timedelta(minutes=45):
-        return f"🌙 {now:%H:%M} · Ұйқыға дайындал\n\nЭкранды өшір, телефонды зарядқа басқа жерге қой. Отбой — {bed}.\nЕртең тұру: {SLEEP.get((d + dt.timedelta(days=1)).isoformat(), (wake,))[0]}. Емтиханға {left - 1} күн."
+        return esc(f"🌙 {now:%H:%M} · Ұйқыға дайындал\n\nЭкранды өшір, телефонды зарядқа басқа жерге қой. Отбой — {bed}.\nЕртең тұру: {SLEEP.get((d + dt.timedelta(days=1)).isoformat(), (wake,))[0]}. Емтиханға {left - 1} күн.")
     B = blocks(d); cur = nxt = None
     for i, (a, b, t) in enumerate(B):
         if a <= now < b: cur = (a, b, t); nxt = B[i + 1] if i + 1 < len(B) else None; break
@@ -99,13 +127,33 @@ def message(now):
     if now.hour < 12 and p and "mock" not in p and "review" not in p:
         lines += ["", "📌 Бүгінгі жоспар:", f"• Алгоритм: {p['algo']}", f"• ДҚ: {p['db']}", f"• Ағылшын: {p['eng']}", f"• ТГО: {p['tgo']}"]
     lines += ["", "Шың → " + SITE]
-    return "\n".join(lines)
+    subj = "algo" if (cur and "АЛГОРИТМ" in cur[2]) else "db" if (cur and "ДЕРЕКТЕР" in cur[2]) else ("algo" if now.hour % 4 == 0 else "db")
+    return esc("\n".join(lines)) + quiz_html(now, subj)
+
+def day_poll(now):
+    """20:00 — «Бүгін не орындадың?» (бірнеше жауапты сауалнама)."""
+    if now.hour != 20: return None
+    p = PLAN.get(now.date().isoformat())
+    if not p: return None
+    if "mock" in p: items = ["Толық пробник тапсырдым", "Қателерді талдадым", "Қателер дәптері: 20 сұрақ"]
+    elif "review" in p: items = ["Қателер дәптерін қарадым", "Шпаргалка мен тактиканы оқыдым", "Құжаттарды дайындадым"]
+    else: items = ["Алгоритм: " + p["algo"], "ДҚ: " + p["db"], "Ағылшын: " + p["eng"], "ТГО: " + p["tgo"], "Қателерді қайталадым"]
+    items = [i[:100] for i in items] + ["Ештеңе 😔 — ертең міндетті түрде"]
+    return {"question": "📊 Бүгінгі қорытынды: не орындадың? (бірнешеуін белгіле)", "options": items}
+
+def api(method, payload):
+    data = urllib.parse.urlencode(payload).encode()
+    with urllib.request.urlopen("https://api.telegram.org/bot" + os.environ["TELEGRAM_TOKEN"] + "/" + method, data=data, timeout=20) as r:
+        return json.load(r).get("ok")
+
+def poll(pl):
+    ok = api("sendPoll", {"chat_id": os.environ["TELEGRAM_CHAT_ID"], "question": pl["question"],
+                          "options": json.dumps(pl["options"], ensure_ascii=False), "allows_multiple_answers": "true"})
+    print("poll sent" if ok else "poll error")
 
 def send(text):
-    tok, chat = os.environ["TELEGRAM_TOKEN"], os.environ["TELEGRAM_CHAT_ID"]
-    data = urllib.parse.urlencode({"chat_id": chat, "text": text, "disable_web_page_preview": "true"}).encode()
-    with urllib.request.urlopen("https://api.telegram.org/bot" + tok + "/sendMessage", data=data, timeout=20) as r:
-        ok = json.load(r).get("ok"); print("sent" if ok else "telegram error")
+    ok = api("sendMessage", {"chat_id": os.environ["TELEGRAM_CHAT_ID"], "text": text, "parse_mode": "HTML", "disable_web_page_preview": "true"})
+    print("sent" if ok else "telegram error")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--dry":
@@ -113,10 +161,16 @@ if __name__ == "__main__":
         for h in range(6, 24, 2):
             m = message(dt.datetime.combine(day, dt.time(h, 0), TZ))
             print(f"----- {h:02d}:00 -----\n{m or '(жіберілмейді)'}\n")
+            pl = day_poll(dt.datetime.combine(day, dt.time(h, 0), TZ))
+            if pl: print("[САУАЛНАМА]", pl, "\n")
         sys.exit(0)
     now = dt.datetime.now(TZ)
     now = now.replace(minute=0, second=0, microsecond=0) if now.minute < 50 else (now + dt.timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-    if os.environ.get("FORCE_TEST"): send("✅ Шың көмекші қосылды. Енді 2 сағат сайын не істеу керегін жазып отырамын.\n\n" + (message(now) or "")); sys.exit(0)
+    if os.environ.get("FORCE_TEST"):
+        send(esc("✅ Шың көмекші қосылды. Енді 2 сағат сайын не істеу керегін жазып, бір сұрақ беріп отырамын.") + "\n\n" + (message(now) or quiz_html(now, "algo")))
+        sys.exit(0)
     m = message(now)
     if m: send(m)
     else: print("skip")
+    pl = day_poll(now)
+    if pl: poll(pl)

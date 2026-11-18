@@ -261,6 +261,7 @@
       (sessions ? '<section class="block"><h2>Жалғастыру</h2><div class="resumes">' + sessions + '</div></section>' : "") +
       '<section class="block"><h2>Тағы жаттығу</h2><div class="actions actions--4">' +
         action("review", "Қайталау", (due + wrong) ? (due ? due + " сұрақты қайталау уақыты келді" : "") + (due && wrong ? ", " : "") + (wrong ? wrong + " қате сұрақ күтіп тұр" : "") : "20 сұрақтық диагностика — әлсіз тақырыптарыңды анықтайды", due + wrong, due ? "Қайталау" : wrong ? "Қателерді шығару" : "Бастау", wrong ? '<a class="act__link" href="#/mistakes">Қателер дәптері · ' + wrong + '</a>' : "") +
+        action("ktsim", "КТ симуляторы", "Толық емтихан нақты КТ ретімен және уақытымен: ағылшын, ТГО, алгоритм, ДҚ. Нәтиже — 150 балдық шкалада", 0, "Бастау") +
         action("map", "Пән картасы", "Әр пәннің құрылымы: КТ-да қай тақырыптан неше сұрақ, сенің дәлдігің, сабақ пен жаттығу", 0, "Ашу") +
         action("ana", "ТГО: тек аналитика", "Математикасыз 20 сұрақ: мәтін, қорытынды, дәлел, сыни ойлау. Алдымен шешілмегендері мен қателері", 0, "Бастау") +
         action("blitz", "Блиц · 60 секунд", "Комбо жина, рекордыңды жаң. Рекорд: " + (Shyn.Game ? Shyn.Game.state.blitzBest : 0), 0, "Ойнау") +
@@ -277,7 +278,7 @@
     U.on("[data-act]", "click", function (e, el) {
       var a = el.getAttribute("data-act");
       if (a === "review") { if (due) Shyn.launchAdaptive("due"); else if (wrong) Shyn.launchMistakes(); else Shyn.launchAdaptive("weak"); }
-      else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "ana") Shyn.launchAnalytics(); else if (a === "map") Shyn.go("#/map"); else if (a === "media") Shyn.go("#/media"); else if (a === "explain") Shyn.go("#/explain");
+      else if (a === "eint") Shyn.go("#/eng/intensive"); else if (a === "blitz") Shyn.go("#/blitz"); else if (a === "ana") Shyn.launchAnalytics(); else if (a === "map") Shyn.go("#/map"); else if (a === "ktsim") Shyn.launchKTSim(); else if (a === "media") Shyn.go("#/media"); else if (a === "explain") Shyn.go("#/explain");
     }, view);
   });
   function action(key, title, text, count, cta, extra) {
@@ -708,7 +709,7 @@
           '<div class="inline"><button class="btn btn--primary" id="again">Қайта тапсыру</button>' +
           '<button class="btn btn--line" id="againWrong"' + (sc.wrong + sc.partial + sc.empty ? "" : " disabled") + '>Тек қателерді</button>' +
           '<a class="btn btn--ghost" href="#/">Басты бетке</a></div></div>' +
-      '</section>' +
+      '</section>' + (Shyn.resultExtra ? Shyn.resultExtra(R) : "") +
       '<section class="block"><h2>Талдау</h2><div class="toolbar">' +
         '<div class="seg" role="group">' + [["all", "Барлығы"], ["wrong", "Қателер"], ["correct", "Дұрыстар"], ["flag", "Белгіленгендер"]].map(function (f) {
           return '<button data-rf="' + f[0] + '" class="' + (S.review === f[0] ? "is-on" : "") + '">' + f[1] + '</button>'; }).join("") + '</div>' +
