@@ -1719,3 +1719,12 @@ body.has-ibanner #view { padding-bottom: 96px; }
 .map__fy .chip { font-size: .78rem; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; color: var(--kok); text-decoration: none; }
 .map__f { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: auto; }
 @media (max-width: 560px) { .map__list { grid-template-columns: 1fr; } .map__head { padding: 14px; } }
+
+/* Ағылшын сұрақтарының қазақша аудармасы (жауаптан кейін) */
+.trbox { margin-top: 12px; padding: 10px 14px; border-left: 3px solid var(--kok); background: var(--kok-tint); border-radius: 0 var(--radius-s) var(--radius-s) 0; }
+.trbox__h { margin: 0 0 4px; font-size: .78rem; font-weight: 700; color: var(--kok); letter-spacing: .02em; }
+.trbox__t { margin: 0; line-height: 1.55; }
+.trbox__p { margin-top: 8px; }
+.trbox__p summary { cursor: pointer; font-weight: 600; font-size: .9rem; color: var(--kok); }
+.trbox__pt { margin-top: 6px; max-height: 360px; overflow: auto; line-height: 1.6; font-size: .95rem; }
+.trbox__pt p { margin: 0 0 .6em; }

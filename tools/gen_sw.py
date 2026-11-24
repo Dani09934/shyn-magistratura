@@ -4,7 +4,7 @@ import hashlib, os, json, re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Деректерді түзету (идемпотентті): тексерушінің түзетулері, авторлық жинақтарда жауап әрпін теңестіру
 import subprocess, sys
-for t in ('review_fix.py', 'reletter.py'):
+for t in ('review_fix.py', 'reletter.py', 'en_tr_apply.py'):
     subprocess.run([sys.executable, os.path.join(ROOT, 'tools', t)], check=True, stdout=subprocess.DEVNULL)
 # Барлық сұрақ жинақтарын бір файлға біріктіреміз: телефонда 132 сұраныстың орнына 1 сұраныс (GitHub Pages оны gzip-пен ~4 есе қысады)
 idx = open(os.path.join(ROOT, 'data', 'index.js'), encoding='utf-8').read()

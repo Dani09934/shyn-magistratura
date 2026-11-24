@@ -542,12 +542,20 @@
       '<div class="opts">' + opts + '</div>' + conf + (done ? explainHTML(q) : "") + nav + '</article>';
     bindQ(q);
   }
+  // Ағылшын сұрақтары: жауап берілгеннен кейін сұрақтың және мәтіннің қазақша аудармасы
+  Shyn.trHTML = function (q) {
+    if (!q || !q.tr) return "";
+    var P = Shyn.EN_PTR && q.ptr !== undefined ? Shyn.EN_PTR[q.ptr] : "";
+    return '<div class="trbox"><p class="trbox__h">Қазақша аудармасы</p><p class="trbox__t">' + esc(q.tr) + '</p>' +
+      (P ? '<details class="trbox__p"><summary>Мәтіннің толық аудармасы</summary><div class="trbox__pt">' +
+        esc(P).split("\n").map(function (x) { return "<p>" + x + "</p>"; }).join("") + '</div></details>' : "") + '</div>';
+  };
   function explainHTML(q) {
     var r = Score.question(q, S.answers[q.id]);
     var head = r.state === "correct" ? "Дұрыс" : r.state === "partial" ? "Ішінара дұрыс · " + r.points + " / 2 балл" : "Қате";
     return '<section class="explain explain--' + r.state + '"><h3>' + head + '</h3>' +
       '<p class="explain__ans">Дұрыс жауап: <b>' + esc(q.correct.join(", ")) + '</b>' + (q.derived ? ' <span class="muted">(кілт талдау арқылы анықталған)</span>' : "") + '</p>' +
-      '<div class="explain__t">' + Shyn.fmt(q.ex || "Түсіндірме кейін қосылады.") + '</div>' +
+      '<div class="explain__t">' + Shyn.fmt(q.ex || "Түсіндірме кейін қосылады.") + '</div>' + Shyn.trHTML(q) +
       (q.disputed ? '<p class="warn">Даулы жауап. ' + esc(q.dnote || "Ресми кілт осы нұсқаны есептейді, бірақ академиялық тұрғыдан ол қате болуы мүмкін.") + '</p>' : "") +
       (r.state !== "correct" ? reasonHTML(q.id) : "") + feynLink(q) + aiHTML(q.id) + '</section>';
   }
@@ -756,7 +764,7 @@
       '<span class="rv__pts">' + r.points + " / " + r.max + '</span></summary>' +
       (q.passage ? '<details class="rv__pass"><summary>Мәтінді көрсету</summary><div class="rv__ptext">' + Shyn.fmt(q.passage) + '</div></details>' : "") +
       Shyn.code(q.code) + '<ul class="rv__opts">' + opts + '</ul>' +
-      '<div class="explain__t">' + Shyn.fmt(q.ex) + '</div>' +
+      '<div class="explain__t">' + Shyn.fmt(q.ex) + '</div>' + Shyn.trHTML(q) +
       (q.disputed ? '<p class="warn">Даулы жауап. ' + esc(q.dnote || "") + '</p>' : "") +
       (r.state !== "correct" ? reasonHTML(q.id) + aiHTML(q.id) : "") + '</details></article>';
   }

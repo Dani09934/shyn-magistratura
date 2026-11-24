@@ -206,7 +206,7 @@
           (q.passage ? '<details class="rv__pass"><summary>Мәтінді көрсету (оқылым)</summary><div class="rv__ptext">' + Shyn.fmt(q.passage) + '</div></details>' : "") +
           (q.audio && !q.passage ? '<audio controls preload="none" src="' + esc(q.audio) + '"></audio>' : "") + Shyn.code(q.code) +
           '<ul class="rv__opts">' + q.opts.map(function (o) { var ok = q.correct.indexOf(o.l) >= 0; return '<li class="' + (ok ? "is-ok" : "") + '"><b>' + o.l + '</b> ' + Shyn.fmt(o.t) + Shyn.code(o.code) + '</li>'; }).join("") + '</ul>' +
-          '<div class="explain__t">' + Shyn.fmt(q.ex) + '</div></details>';
+          '<div class="explain__t">' + Shyn.fmt(q.ex) + '</div>' + Shyn.trHTML(q) + '</details>';
       }).join("") || '<p class="empty">Ештеңе табылмады. Сөзді қысқартып немесе сүзгіні алып көріңіз.</p>';
       U.$("#bMore").hidden = found.length <= B.limit;
     }

@@ -49,7 +49,7 @@
       '<span class="rv__pts">' + (x.L.attempts ? (x.L.correct || 0) + "/" + x.L.attempts : "") + '</span></summary>' +
       (q.passage ? '<details class="mk__passage"><summary>Мәтін</summary><div>' + Shyn.fmt(q.passage) + '</div></details>' : "") +
       Shyn.code(q.code) + '<ul class="rv__opts">' + opts + '</ul>' +
-      '<div class="explain__t">' + Shyn.fmt(q.ex) + '</div>' +
+      '<div class="explain__t">' + Shyn.fmt(q.ex) + '</div>' + Shyn.trHTML(q) +
       '<div class="inline mk__acts"><button class="btn btn--line btn--sm" data-one="' + esc(q.id) + '">Қайта шығару</button>' +
       '<button class="btn btn--ghost btn--sm" data-done="' + esc(q.id) + '">Түсіндім, тізімнен алу</button></div>' +
       '</details></article>';

@@ -252,7 +252,7 @@
     }
   };
   function exHTML(q, ok) {
-    return '<p class="labres ' + (ok ? "is-ok" : "is-no") + '">' + (ok ? "Дұрыс! +20 XP" : "Дұрыс жауап: " + q.correct.join(", ") + ". Ертең жаңа сұрақ келеді.") + '</p>' + (q.ex ? '<p class="gex">' + Shyn.fmt(q.ex) + '</p>' : "");
+    return '<p class="labres ' + (ok ? "is-ok" : "is-no") + '">' + (ok ? "Дұрыс! +20 XP" : "Дұрыс жауап: " + q.correct.join(", ") + ". Ертең жаңа сұрақ келеді.") + '</p>' + (q.ex ? '<p class="gex">' + Shyn.fmt(q.ex) + '</p>' : "") + Shyn.trHTML(q);
   }
   function paintMini() {
     var m = document.getElementById("railXP"); if (!m) return;
@@ -312,7 +312,7 @@
       (B.wrong.length ? '<section class="block"><h2>Қателер және түсіндірме</h2>' + B.wrong.map(function (w) {
         var c = w.q.opts.filter(function (o) { return w.q.correct.indexOf(o.l) >= 0; }).map(function (o) { return o.t; }).join("; ");
         var s = (w.q.opts.filter(function (o) { return o.l === w.sel; })[0] || {}).t || "";
-        return '<div class="bwrong"><p class="bwrong__q">' + Shyn.fmt(w.q.q) + '</p><p><span class="tone-no">Сенің жауабың: ' + Shyn.fmt(s) + '</span><br><span class="tone-ok">Дұрыс: ' + Shyn.fmt(c) + '</span></p>' + (w.q.ex ? '<p class="gex">' + Shyn.fmt(w.q.ex) + '</p>' : "") + '</div>';
+        return '<div class="bwrong"><p class="bwrong__q">' + Shyn.fmt(w.q.q) + '</p><p><span class="tone-no">Сенің жауабың: ' + Shyn.fmt(s) + '</span><br><span class="tone-ok">Дұрыс: ' + Shyn.fmt(c) + '</span></p>' + (w.q.ex ? '<p class="gex">' + Shyn.fmt(w.q.ex) + '</p>' : "") + Shyn.trHTML(w.q) + '</div>';
       }).join("") + '</section>' : "") + '</section>';
     U.$("#bAgain").addEventListener("click", function () { startBlitz(B.subj); });
     U.$("#bShare").addEventListener("click", function () { share("blitz", B); });
