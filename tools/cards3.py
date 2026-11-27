@@ -5,7 +5,46 @@ import json, os, re, subprocess
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 cards = []
 
+
+# ---------- мысалдардың аудармасы (12 шақтан басқа карточкалар) ----------
+TR = {
+ 'The room is cleaned every day.': 'Бөлме күн сайын жиналады.', 'The room is being cleaned now.': 'Бөлме қазір жиналып жатыр.',
+ 'The room has been cleaned.': 'Бөлме жиналып қойылды.', 'The house was built in 1990.': 'Үй 1990 жылы салынған.',
+ 'The car was being repaired.': 'Көлік жөнделіп жатқан еді.', 'The work had been done before noon.': 'Жұмыс түске дейін орындалып қойған еді.',
+ 'The letter will be sent tomorrow.': 'Хат ертең жіберіледі.', 'It will have been finished by Monday.': 'Ол дүйсенбіге дейін аяқталып қойған болады.',
+ 'It must be done today.': 'Ол бүгін орындалуы керек.', 'The book was written by Abai.': 'Кітапты Абай жазған.',
+ 'Mozart was born in 1756.': 'Моцарт 1756 жылы туған.', "Do it! Don't be late! Let's go.": 'Істе! Кешікпе! Кеттік.',
+ 'If I were you …': 'Мен сенің орныңда болсам …', 'I wish she were here.': 'Ол осында болса ғой.', "It's essential that he be on time.": 'Оның уақытында келуі өте маңызды.',
+ 'I suggest that she study.': 'Мен оған оқуды ұсынамын.', "It's essential that he be here.": 'Оның осында болуы өте маңызды.',
+ 'If I were you, I would apologize.': 'Сенің орныңда болсам, кешірім сұрар едім.', 'I wish she were more understanding.': 'Ол түсіністігірек болса ғой.',
+ 'He speaks as if he knew everything.': 'Ол бәрін білетіндей сөйлейді.', 'I wish I knew.': 'Білсем ғой.', 'I wish I had studied.': 'Оқып алғанымда ғой.',
+ 'I wish you would stop.': 'Тоқтасаңшы.', 'If you heat ice, it melts.': 'Мұзды қыздырсаң, ол ериді.',
+ 'If it rains, we will stay home.': 'Жаңбыр жауса, үйде қаламыз.', 'If I were rich, I would travel.': 'Бай болсам, саяхаттар едім.',
+ 'If I had studied, I would have passed.': 'Оқығанымда, тапсырар едім.', "If I had slept, I wouldn't be tired now.": 'Ұйықтағанымда, қазір шаршамас едім.',
+ 'Unless you hurry, you will be late.': 'Асықпасаң, кешігесің.', 'He must be at home.': 'Ол үйде болуы керек.',
+ 'You should see a doctor.': 'Дәрігерге қаралуың керек.', "You needn't come.": 'Келудің қажеті жоқ.', "It can't be true.": 'Бұл шын болуы мүмкін емес.',
+ 'He must have left.': 'Ол кетіп қалған болуы керек.', 'You should have told me.': 'Маған айтуың керек еді.', 'I will be able to come.': 'Мен келе аламын.',
+ 'I came here to study.': 'Мен мұнда оқу үшін келдім.', 'Swimming is good.': 'Жүзу пайдалы.', 'I like reading.': 'Мен кітап оқығанды ұнатамын.',
+ 'Smoking is harmful.': 'Темекі шегу зиянды.', 'a crying baby': 'жылап жатқан бала', 'the man standing there.': 'анда тұрған адам.',
+ 'a broken window': 'сынған терезе', 'a letter written in English.': 'ағылшынша жазылған хат.',
+ 'Having finished the work, he went home.': 'Жұмысты бітіріп, ол үйге кетті.', 'She always gets up early.': 'Ол әрқашан ерте тұрады.',
+ 'He is never late.': 'Ол ешқашан кешікпейді.', 'I have never seen it.': 'Мен оны ешқашан көрген емеспін.',
+ 'She sang beautifully at the concert last night.': 'Ол кеше кешке концертте әдемі ән салды.', 'It started to rain = It started raining.': 'Жаңбыр жауа бастады.',
+ 'They made me wait.': 'Олар мені күттірді.', 'Let me go.': 'Мені жібер.', 'Help me (to) carry it.': 'Оны көтеруге көмектес.',
+ 'speaks quickly, very good, too fast.': 'тез сөйлейді, өте жақсы, тым жылдам.', 'big = large, huge.': 'үлкен.', 'begin ↔ end, generous ↔ mean.': 'бастау ↔ аяқтау, жомарт ↔ сараң.',
+}
+TR = {k: v for k, v in TR.items() if v}
+
+def trx(text):
+    for en in sorted(TR, key=len, reverse=True):
+        i = text.find(en)
+        if i >= 0 and not text[i + len(en):].startswith(' — '):
+            text = text[:i + len(en)] + ' — ' + TR[en] + text[i + len(en):]
+    return text
+
 def add(subject, topic, front, back, en=None):
+    if subject == 'english' and not topic.startswith('12 шақ'):
+        back = trx(back)
     c = {'id': 'fc3-%d' % (len(cards) + 1), 'subject': subject, 'topic': topic, 'front': front, 'back': back}
     if en: c['say'] = en
     cards.append(c)
@@ -67,6 +106,19 @@ KZ = {'admit': 'мойындау', 'avoid': 'аулақ болу', 'consider': '
       'agree': 'келісу', 'decide': 'шешу', 'hope': 'үміттену', 'plan': 'жоспарлау', 'promise': 'уәде беру', 'refuse': 'бас тарту', 'want': 'қалау', 'learn': 'үйрену', 'manage': 'үлгеру, қолынан келу',
       'offer': 'ұсыну', 'pretend': 'кейіп таныту', 'afford': 'шамасы жету', 'expect': 'күту', 'fail': 'істей алмау', 'seem': 'сияқты көріну', 'threaten': 'қорқыту', 'wish': 'тілеу', 'need': 'қажет ету',
       'can\'t afford': 'шамасы жетпеу', 'can\'t wait': 'асыға күту', 'attempt': 'әрекеттену', 'hesitate': 'тартыну', 'prepare': 'дайындалу', 'would like': 'қалар еді', 'ask': 'сұрау', 'choose': 'таңдау'}
+KZ.update({'abhor': 'жек көру', 'acknowledge': 'мойындау', 'advise': 'кеңес беру', 'allow': 'рұқсат ету', 'anticipate': 'алдын ала күту', 'appreciate': 'бағалау, риза болу',
+ 'celebrate': 'тойлау', 'confess': 'мойындау', 'defend': 'қорғау', 'detest': 'жек көру', 'discontinue': 'тоқтату', 'discuss': 'талқылау', 'dispute': 'дауласу',
+ 'dread': 'қатты қорқу', 'endure': 'төзу', 'escape': 'құтылу', 'evade': 'жалтару', 'explain': 'түсіндіру', 'fancy': 'қалау, елестету', 'fear': 'қорқу',
+ 'feign': 'кейіп таныту', 'forgive': 'кешіру', 'keep on': 'жалғастыра беру', 'mention': 'атап өту', 'necessitate': 'қажет ету', 'omit': 'өткізіп жіберу',
+ 'permit': 'рұқсат ету', 'picture': 'елестету', 'prevent': 'алдын алу, кедергі болу', 'recall': 'еске түсіру', 'recollect': 'еске алу', 'recommend': 'ұсыну, кеңес беру',
+ 'report': 'хабарлау', 'resent': 'ренжу', 'resume': 'қайта жалғастыру', 'shirk': 'міндеттен жалтару', 'shun': 'аулақ жүру', 'support': 'қолдау', 'tolerate': 'төзу',
+ 'understand': 'түсіну', 'urge': 'шақыру, асықтыру', 'warrant': 'негіздеу, ақтау',
+ 'appear': 'болып көріну', 'arrange': 'ұйымдастыру, келісу', 'beg': 'жалыну', 'care': 'қалау, мән беру', 'chance': 'кездейсоқ болу', 'claim': 'мәлімдеу',
+ 'come': 'келу', 'consent': 'келісім беру', 'dare': 'батылы бару', 'demand': 'талап ету', 'deserve': 'лайық болу', 'determine': 'бел байлау', 'elect': 'шешу, таңдау',
+ 'endeavor': 'тырысу', 'get': 'мүмкіндік алу', 'grow up': 'өсіп-жетілу', 'guarantee': 'кепілдік беру', 'hurry': 'асығу', 'incline': 'бейім болу', 'mean': 'ниет ету',
+ 'neglect': 'елемеу', 'pay': 'төлеу', 'profess': 'мәлімдеу', 'prove': 'болып шығу', 'remain': 'қалу', 'request': 'өтіну', 'resolve': 'шешім қабылдау', 'say': 'айту',
+ 'seek': 'ұмтылу', 'shudder': 'шошу', 'strive': 'ұмтылу', 'struggle': 'тырмысу', 'swear': 'ант беру', 'tend': 'бейім болу', 'turn out': 'болып шығу',
+ 'venture': 'тәуекелге бару', 'volunteer': 'өз еркімен ұсыну', 'wait': 'күту', 'yearn': 'аңсау'})
 for v in [x.strip() for x in GER.split(',')]:
     add('english', 'Gerund / Infinitive', v + (' (' + KZ[v] + ')' if v in KZ else '') + '\n+ ?', v + ' + V-ing (gerund)\nМысал: He ' + ('avoids' if v == 'avoid' else v) + ' doing it.' if False else v + ' + V-ing (gerund)\nМысалы: I ' + v + ' doing …')
 for v in [x.strip() for x in INF.split(',')]:
@@ -147,11 +199,11 @@ for f, b in [('in / on / at: уақыт', 'in — ай, жыл, маусым, ғ
              ('in / on / at: мекен', 'in — ішінде: in the room, in Almaty, in a car\non — бетінде: on the table, on the wall, on the bus, on the 2nd floor\nat — нүкте, мекеме: at home, at school, at the bus stop, at the door'),
              ('for / since / during / ago', 'for — уақыт аралығы: for 3 years\nsince — басталған сәт: since 2020\nduring — бір кезең ішінде: during the lesson\nago — бұрын (Past Simple): 2 years ago'),
              ('by / until / till', 'by — кешіктірмей (сол уақытқа дейін): by Friday\nuntil — дейін (сол уақытқа дейін жалғасады): wait until 5'),
-             ('Етістік + предлог', 'depend on, consist of, belong to, listen to, look for, look after, wait for, agree with, be afraid of, be good at, be interested in, be proud of'),
+             ('Етістік + предлог', 'depend on — тәуелді болу · consist of — тұру (құралу) · belong to — тиесілі болу · listen to — тыңдау · look for — іздеу · look after — қарау, күту · wait for — күту · agree with — келісу · be afraid of — қорқу · be good at — жақсы білу · be interested in — қызығу · be proud of — мақтану'),
              ('between / among', 'between — екеуінің арасы; among — көптің арасы')]:
     add('english', 'Prepositions', f, b)
 for f, b in [('Синоним / антоним', 'Синоним — мағынасы жақын: big = large, huge.\nАнтоним — қарама-қарсы: begin ↔ end, generous ↔ mean.'),
-             ('Жиі антонимдер', 'increase ↔ decrease · accept ↔ refuse · ancient ↔ modern · cheap ↔ expensive · rare ↔ frequent · temporary ↔ permanent · polite ↔ rude · generous ↔ mean/stingy'),
+             ('Жиі антонимдер', 'increase ↔ decrease (арттыру ↔ азайту)\naccept ↔ refuse (қабылдау ↔ бас тарту)\nancient ↔ modern (ежелгі ↔ заманауи)\ncheap ↔ expensive (арзан ↔ қымбат)\nrare ↔ frequent (сирек ↔ жиі)\ntemporary ↔ permanent (уақытша ↔ тұрақты)\npolite ↔ rude (сыпайы ↔ дөрекі)\ngenerous ↔ mean/stingy (жомарт ↔ сараң)'),
              ('Антоним жасайтын префикстер', 'un- (unhappy), in- (incorrect), im- (impossible), il- (illegal), ir- (irregular), dis- (dislike), mis- (misunderstand), non- (non-stop)'),
              ('Сөз жасайтын жұрнақтар', 'Зат есім: -tion, -ment, -ness, -ity, -er/-or\nСын есім: -ful, -less, -able, -ous, -ive, -al\nҮстеу: -ly · Етістік: -ize, -en, -fy')]:
     add('english', 'Lexicology: synonyms, antonyms', f, b)
