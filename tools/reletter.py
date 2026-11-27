@@ -5,7 +5,7 @@ python3 tools/reletter.py   (gen_sw.py өзі шақырады)"""
 import glob, hashlib, json, os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PATTERN = 'data/sets/v9[1-5]-*.js'
+PATTERN = 'data/sets/v9[1-7]-*.js'
 
 
 def opt_text(o):

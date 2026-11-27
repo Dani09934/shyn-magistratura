@@ -4,65 +4,114 @@
   var Shyn = global.Shyn, U = Shyn.U, Store = Shyn.Store, esc = U.esc;
   var view = document.getElementById("view");
 
-  /* ================= Карточкалар ================= */
-  var C = { subjects: null, topic: "", onlyNew: false, shuffle: false, deck: [], pos: 0, flipped: false };
+  /* ================= Карточкалар =================
+     Колода (тақырып) таңдау, үлкен карточка, аудару, свайп: оңға — білемін, солға — білмеймін,
+     «тек білмейтіндерім», араластыру, кері жағынан бастау, ағылшын карточкаларын дауыстап оқу, сеанс қорытындысы. */
+  var C = { subject: null, topic: "", onlyNew: false, shuffle: false, reverse: false, speak: false, deck: [], pos: 0, flipped: false, sess: { know: 0, unknown: 0 } };
+  try { var _cp = JSON.parse(localStorage.getItem("shyn_cards_ui") || "null"); if (_cp) { ["subject", "topic", "onlyNew", "shuffle", "reverse", "speak"].forEach(function (k) { if (k in _cp) C[k] = _cp[k]; }); } } catch (e) {}
+  function saveUI() { try { localStorage.setItem("shyn_cards_ui", JSON.stringify({ subject: C.subject, topic: C.topic, onlyNew: C.onlyNew, shuffle: C.shuffle, reverse: C.reverse, speak: C.speak })); } catch (e) {} }
+  var SUBJ_ORDER = ["english", "algo", "db", "fundamentals"];
+  function pool() { return Shyn.cards.filter(function (c) { return c.subject === C.subject; }); }
   function buildDeck() {
-    var list = Shyn.cards.filter(function (c) {
-      return C.subjects.indexOf(c.subject) >= 0 && (!C.topic || c.topic === C.topic) && !(C.onlyNew && Store.cardStatus(c.id) === "know");
-    });
-    C.deck = C.shuffle ? U.shuffle(list) : list; C.pos = Math.min(C.pos, Math.max(0, C.deck.length - 1)); C.flipped = false;
+    var list = pool().filter(function (c) { return (!C.topic || c.topic === C.topic) && !(C.onlyNew && Store.cardStatus(c.id) === "know"); });
+    C.deck = C.shuffle ? U.shuffle(list) : list; C.pos = 0; C.flipped = false; C.sess = { know: 0, unknown: 0 };
+  }
+  function say(c) {
+    if (!C.speak || !c || c.subject !== "english" || !Shyn.tts || !Shyn.tts.ok()) return;
+    var t = c.say || c.front.split("\n")[0]; if (/[а-яәіңғүұқөһ]/i.test(t)) return;
+    try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(t); u.lang = "en-GB"; u.rate = 0.9; speechSynthesis.speak(u); } catch (e) {}
   }
   Shyn.route("cards", function (args) {
-    var subs = []; Shyn.cards.forEach(function (c) { if (subs.indexOf(c.subject) < 0) subs.push(c.subject); });
-    if (args && args[0] && subs.indexOf(args[0]) >= 0 && (!C.subjects || C.subjects.join() !== args[0])) { C.subjects = [args[0]]; C.topic = ""; C.pos = 0; buildDeck(); }
-    if (!C.subjects) { C.subjects = subs.slice(); buildDeck(); }
-    var pool = Shyn.cards.filter(function (c) { return C.subjects.indexOf(c.subject) >= 0; });
-    var know = pool.filter(function (c) { return Store.cardStatus(c.id) === "know"; }).length;
-    var topics = []; pool.forEach(function (c) { if (topics.indexOf(c.topic) < 0) topics.push(c.topic); });
-    var c = C.deck[C.pos], st = c && Store.cardStatus(c.id);
+    var subs = SUBJ_ORDER.filter(function (s) { return Shyn.cards.some(function (c) { return c.subject === s; }); });
+    if (args && args[0] && subs.indexOf(args[0]) >= 0 && C.subject !== args[0]) { C.subject = args[0]; C.topic = ""; C.deck = []; }
+    if (subs.indexOf(C.subject) < 0) { C.subject = subs[0]; C.topic = ""; C.deck = []; }
+    if (!C.deck.length && !C.sess.know && !C.sess.unknown) buildDeck();
+    var P = pool(), topics = [];
+    P.forEach(function (c) { if (topics.indexOf(c.topic) < 0) topics.push(c.topic); });
+    // Жаңа (fc3) колодалар алдымен, өз ретімен
+    var rank = function (t) { for (var i = 0; i < P.length; i++) if (P[i].topic === t && /^fc3-/.test(P[i].id)) return i; return 1e6 + topics.indexOf(t); };
+    topics.sort(function (a, b) { return rank(a) - rank(b); });
+    function stat(list) { var k = 0, u = 0; list.forEach(function (c) { var s = Store.cardStatus(c.id); if (s === "know") k++; else if (s === "unknown") u++; }); return { all: list.length, know: k, unk: u }; }
+    var tiles = [["", "Барлығы"]].concat(topics.map(function (t) { return [t, t]; })).map(function (t) {
+      var st = stat(t[0] ? P.filter(function (c) { return c.topic === t[0]; }) : P), pc = st.all ? Math.round(st.know / st.all * 100) : 0;
+      return '<button class="dtile' + (C.topic === t[0] ? " is-on" : "") + '" data-ct="' + esc(t[0]) + '"><b>' + esc(t[1]) + '</b><small>' + st.all + ' карточка · білемін ' + st.know + (st.unk ? ' · қайталау ' + st.unk : "") + '</small><i style="width:' + pc + '%"></i></button>';
+    }).join("");
+    var c = C.deck[C.pos], st = c && Store.cardStatus(c.id), done = !c && (C.sess.know + C.sess.unknown) > 0;
+    var front = c ? (C.reverse ? c.back : c.front) : "", back = c ? (C.reverse ? c.front : c.back) : "";
+    var tensesBtn = C.subject === "english" && /шақ/.test(C.topic) ? '<button class="btn btn--primary" id="cTenses">12 шақ бойынша тест</button>'
+      : C.subject === "english" && /Passive|Infinitive|Gerund|Participle|Adverb|Preposition|Mood|Conditional|Lexicology|Modal/.test(C.topic) ? '<button class="btn btn--primary" id="cGram">Грамматика тақырыптары бойынша тест</button>' : "";
     view.innerHTML =
-      '<header class="page-head"><h1>Есте сақтау карточкалары</h1><p class="muted">Сұрақты оқып, жауапты есіңізге түсіріңіз, сосын карточканы аударып, өзіңізді бағалаңыз.</p></header>' +
-      '<div class="toolbar">' + subs.map(function (s) {
-        return '<button class="chip' + (C.subjects.indexOf(s) >= 0 ? " is-on" : "") + '" data-cs="' + s + '">' + Shyn.SUBJECT[s].short + '</button>'; }).join("") +
-        '<select class="field" id="cTopic"><option value="">Барлық тақырып</option>' + topics.sort().map(function (t) { return '<option' + (t === C.topic ? " selected" : "") + '>' + esc(t) + '</option>'; }).join("") + '</select>' +
+      '<header class="page-head"><h1>Карточкалар</h1><p class="muted">Колоданы таңдаңыз. Карточканы басып аударыңыз; оңға сипау — білемін, солға — білмеймін.</p></header>' +
+      '<div class="toolbar">' + subs.map(function (s) { return '<button class="chip' + (C.subject === s ? " is-on" : "") + '" data-cs="' + s + '">' + Shyn.SUBJECT[s].short + ' <small>' + Shyn.cards.filter(function (x) { return x.subject === s; }).length + '</small></button>'; }).join("") + '</div>' +
+      '<div class="dtiles">' + tiles + '</div>' +
+      '<div class="toolbar ctools">' +
         '<label class="check"><input type="checkbox" id="cNew"' + (C.onlyNew ? " checked" : "") + '> Тек білмейтіндерім</label>' +
-        '<label class="check"><input type="checkbox" id="cShuf"' + (C.shuffle ? " checked" : "") + '> Араластыру</label></div>' +
-      '<div class="deckbar"><span>Барлығы <b>' + pool.length + '</b></span><span>Білемін <b>' + know + '</b></span><span>Қайталау керек <b>' + pool.filter(function (c) { return Store.cardStatus(c.id) === "unknown"; }).length + '</b></span>' + Shyn.bar(pool.length ? know / pool.length * 100 : 0, "good") +
-        '<button class="link" id="cReset">Прогресті тазалау</button></div>' +
-      (c ? '<div class="stage"><p class="muted">Карточка ' + (C.pos + 1) + " / " + C.deck.length + " · " + esc(c.topic) + (st ? " · " + (st === "know" ? "білемін" : "қайталау керек") : "") + '</p>' +
-        '<button class="flash' + (C.flipped ? " is-flipped" : "") + '" id="flash" aria-label="Карточканы аудару">' +
-          '<span class="flash__in"><span class="flash__face flash__face--front"><small>' + Shyn.SUBJECT[c.subject].short + '</small><span>' + Shyn.fmt(c.front) + '</span><em>Аудару үшін басыңыз · телефонда оңға сипау — білемін, солға — білмеймін</em></span>' +
-          '<span class="flash__face flash__face--back"><small>Жауап</small><span>' + Shyn.fmt(c.back) + '</span></span></span></button>' +
-        '<div class="inline inline--center"><button class="btn btn--ghost" id="cPrev">Алдыңғы</button>' +
-          '<button class="btn btn--no" id="cNo">Білмеймін</button><button class="btn btn--ok" id="cYes">Білемін</button>' +
-          '<button class="btn btn--ghost" id="cNext">Келесі</button></div></div>'
-        : '<p class="empty">Сүзгілерге сәйкес карточка жоқ. «Тек білмейтіндерім» белгісін алып көріңіз.</p>');
-    U.on("[data-cs]", "click", function (e, el) { var s = el.getAttribute("data-cs"), i = C.subjects.indexOf(s); if (i >= 0) C.subjects.splice(i, 1); else C.subjects.push(s); C.topic = ""; C.pos = 0; buildDeck(); Shyn.render(); }, view);
-    U.$("#cTopic").addEventListener("change", function (e) { C.topic = e.target.value; C.pos = 0; buildDeck(); Shyn.render(); });
-    U.$("#cNew").addEventListener("change", function (e) { C.onlyNew = e.target.checked; C.pos = 0; buildDeck(); Shyn.render(); });
-    U.$("#cShuf").addEventListener("change", function (e) { C.shuffle = e.target.checked; C.pos = 0; buildDeck(); Shyn.render(); });
-    U.$("#cReset").addEventListener("click", function () { Shyn.ask("Карточкалар бойынша прогресті тазалайсыз ба?", "Тазалау", "Болдырмау", function () { Store.clearCards(Shyn.cards.map(function (x) { return x.id; })); buildDeck(); Shyn.render(); }); });
+        '<label class="check"><input type="checkbox" id="cShuf"' + (C.shuffle ? " checked" : "") + '> Араластыру</label>' +
+        '<label class="check"><input type="checkbox" id="cRev"' + (C.reverse ? " checked" : "") + '> Жауабынан бастау</label>' +
+        (C.subject === "english" ? '<label class="check"><input type="checkbox" id="cSpeak"' + (C.speak ? " checked" : "") + '> Дауыстап оқу</label>' : "") +
+        tensesBtn + '<button class="link" id="cReset">Осы колоданың прогресін тазалау</button></div>' +
+      (c ? '<div class="stage stage--big"><div class="cprog"><span>' + (C.pos + 1) + ' / ' + C.deck.length + '</span><span class="muted">' + esc(c.topic) + (st ? " · " + (st === "know" ? "білемін" : "қайталау керек") : "") + '</span><span class="cprog__s"><b class="ok">✓ ' + C.sess.know + '</b> <b class="no">✗ ' + C.sess.unknown + '</b></span></div>' +
+        '<div class="cbar"><i style="width:' + Math.round(C.pos / C.deck.length * 100) + '%"></i></div>' +
+        '<button class="flash flash--big' + (C.flipped ? " is-flipped" : "") + '" id="flash" aria-label="Карточканы аудару">' +
+          '<span class="flash__in"><span class="flash__face flash__face--front"><small>' + (C.reverse ? "Жауабы" : "Сұрақ") + '</small><span class="flash__txt' + (front.length < 40 ? " is-short" : "") + '">' + Shyn.fmt(front) + '</span><em>Аудару үшін басыңыз</em></span>' +
+          '<span class="flash__face flash__face--back"><small>' + (C.reverse ? "Сұрағы" : "Жауабы") + '</small><span class="flash__txt' + (back.length < 40 ? " is-short" : "") + '">' + Shyn.fmt(back) + '</span></span></span>' +
+          '<span class="flash__tag flash__tag--no">БІЛМЕЙМІН</span><span class="flash__tag flash__tag--yes">БІЛЕМІН</span></button>' +
+        '<div class="cbtns"><button class="btn btn--ghost" id="cPrev" aria-label="Алдыңғы">←</button>' +
+          '<button class="btn btn--no" id="cNo">✗ Білмеймін</button><button class="btn btn--line" id="cFlip">Аудару</button><button class="btn btn--ok" id="cYes">✓ Білемін</button>' +
+          '<button class="btn btn--ghost" id="cNext" aria-label="Келесі">→</button></div>' +
+        '<p class="muted ckeys">Пернетақта: бос орын — аудару, → білемін, ← білмеймін</p></div>'
+      : done ? '<div class="stage stage--big"><div class="cdone"><h2>Колода аяқталды</h2><p><b class="ok">Білемін: ' + C.sess.know + '</b> · <b class="no">Қайталау керек: ' + C.sess.unknown + '</b></p>' +
+          '<div class="inline inline--center">' + (C.sess.unknown ? '<button class="btn btn--primary" id="cAgainNo">Білмегендерді қайталау</button>' : "") + '<button class="btn btn--line" id="cAgain">Қайтадан бастау</button></div></div></div>'
+      : '<p class="empty">Бұл колодада карточка жоқ. «Тек білмейтіндерім» белгісін алып көріңіз.</p>');
+    U.on("[data-cs]", "click", function (e, el) { C.subject = el.getAttribute("data-cs"); C.topic = ""; saveUI(); buildDeck(); Shyn.render(); }, view);
+    U.on("[data-ct]", "click", function (e, el) { C.topic = el.getAttribute("data-ct"); saveUI(); buildDeck(); Shyn._keepScroll = true; Shyn.render();
+      var stg = U.$(".stage--big"); if (stg && stg.scrollIntoView) stg.scrollIntoView({ behavior: "smooth", block: "start" }); }, view);
+    [["#cNew", "onlyNew"], ["#cShuf", "shuffle"], ["#cRev", "reverse"], ["#cSpeak", "speak"]].forEach(function (x) {
+      var el = U.$(x[0]); if (el) el.addEventListener("change", function (e) { C[x[1]] = e.target.checked; saveUI(); if (x[1] !== "speak") buildDeck(); Shyn._keepScroll = true; Shyn.render(); });
+    });
+    U.$("#cReset").addEventListener("click", function () { Shyn.ask("Осы колоданың прогресін тазалайсыз ба?", "Тазалау", "Болдырмау", function () { Store.clearCards(pool().filter(function (x) { return !C.topic || x.topic === C.topic; }).map(function (x) { return x.id; })); buildDeck(); Shyn.render(); }); });
+    var tb = U.$("#cTenses"); if (tb) tb.addEventListener("click", function () { Shyn.startSetTest("v96-english"); });
+    var gb = U.$("#cGram"); if (gb) gb.addEventListener("click", function () { Shyn.startSetTest("v97-english"); });
+    var ag = U.$("#cAgain"); if (ag) ag.addEventListener("click", function () { buildDeck(); Shyn.render(); });
+    var an = U.$("#cAgainNo"); if (an) an.addEventListener("click", function () { C.onlyNew = true; saveUI(); buildDeck(); Shyn.render(); });
     if (!c) return;
+    say(c);
     U.$("#flash").addEventListener("click", flip);
-    // Телефонда сипау: оңға — білемін, солға — білмеймін
-    var fx = null, fl = U.$("#flash");
-    fl.addEventListener("touchstart", function (e) { fx = e.touches[0].clientX; }, { passive: true });
-    fl.addEventListener("touchmove", function (e) { if (fx == null) return; var dx = e.touches[0].clientX - fx; fl.style.transform = "translateX(" + dx * 0.6 + "px) rotate(" + dx / 40 + "deg)"; fl.classList.toggle("is-yes", dx > 60); fl.classList.toggle("is-no", dx < -60); }, { passive: true });
+    U.$("#cFlip").addEventListener("click", flip);
+    var fx = null, fy = null, fl = U.$("#flash");
+    fl.addEventListener("touchstart", function (e) { fx = e.touches[0].clientX; fy = e.touches[0].clientY; }, { passive: true });
+    fl.addEventListener("touchmove", function (e) {
+      if (fx == null) return; var dx = e.touches[0].clientX - fx;
+      if (Math.abs(dx) < Math.abs(e.touches[0].clientY - fy)) return;
+      fl.style.transform = "translateX(" + dx * 0.7 + "px) rotate(" + dx / 30 + "deg)"; fl.classList.toggle("is-yes", dx > 60); fl.classList.toggle("is-no", dx < -60);
+    }, { passive: true });
     fl.addEventListener("touchend", function (e) {
-      if (fx == null) return; var dx = e.changedTouches[0].clientX - fx; fx = null; fl.style.transform = ""; fl.classList.remove("is-yes", "is-no");
-      if (Math.abs(dx) > 60) { e.preventDefault(); judge(dx > 0 ? "know" : "unknown"); }
+      if (fx == null) return; var dx = e.changedTouches[0].clientX - fx; fx = null; fl.classList.remove("is-yes", "is-no");
+      if (Math.abs(dx) > 70) { e.preventDefault(); fl.style.transform = "translateX(" + (dx > 0 ? 120 : -120) + "%) rotate(" + (dx > 0 ? 12 : -12) + "deg)"; fl.style.opacity = "0"; setTimeout(function () { judge(dx > 0 ? "know" : "unknown"); }, 180); }
+      else fl.style.transform = "";
     });
     U.$("#cPrev").addEventListener("click", function () { move(-1); });
     U.$("#cNext").addEventListener("click", function () { move(1); });
     U.$("#cNo").addEventListener("click", function () { judge("unknown"); });
     U.$("#cYes").addEventListener("click", function () { judge("know"); });
   });
+  Shyn.startSetTest = function (key) {
+    var set = Shyn.allSets().filter(function (x) { return x.key === key; })[0];
+    if (!set) { U.toast("Тест табылмады"); return; }
+    Shyn.startTest("set:" + key + ":" + Date.now(), set.title, set.questions, { mode: "practice" });
+  };
+  document.addEventListener("keydown", function (e) {
+    if (Shyn._route !== "cards" || /INPUT|SELECT|TEXTAREA/.test((e.target || {}).tagName || "") || !U.$("#flash")) return;
+    if (e.key === " ") { e.preventDefault(); flip(); } else if (e.key === "ArrowRight") judge("know"); else if (e.key === "ArrowLeft") judge("unknown");
+  });
   function flip() { C.flipped = !C.flipped; var f = U.$("#flash"); if (f) f.classList.toggle("is-flipped", C.flipped); }
-  function move(d) { if (!C.deck.length) return; C.pos = (C.pos + d + C.deck.length) % C.deck.length; C.flipped = false; Shyn._keepScroll = true; Shyn.render(); }
+  function move(d) { if (!C.deck.length) return; C.pos = Math.max(0, Math.min(C.deck.length - 1, C.pos + d)); C.flipped = false; Shyn._keepScroll = true; Shyn.render(); }
   function judge(s) {
     var c = C.deck[C.pos]; if (!c) return;
-    Store.setCard(c.id, s);
-    if (C.onlyNew && s === "know") { buildDeck(); Shyn._keepScroll = true; Shyn.render(); } else move(1);
+    Store.setCard(c.id, s); C.sess[s === "know" ? "know" : "unknown"]++;
+    C.pos++; C.flipped = false;
+    if (C.pos >= C.deck.length) { C.deck = []; C.pos = 0; }
+    Shyn._keepScroll = true; Shyn.render();
   }
 
   /* ================= Сұрыптау күрделілігі ================= */
