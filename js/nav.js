@@ -83,7 +83,7 @@
       }
       view.insertAdjacentHTML("afterbegin", html);
       if (Shyn._swipeDir) { var d = Shyn._swipeDir; Shyn._swipeDir = null; view.classList.remove("view-in-r", "view-in-l"); void view.offsetWidth; view.classList.add("view-in-" + d); }
-      var on = view.querySelector(".secnav .is-on"); if (on && on.scrollIntoView) { try { on.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
+      Shyn.U.centerX(view.querySelector(".secnav .is-on")); // тек көлденең, бет секірмейді
     }
   };
   /* ===== Бүкіл сайт бойынша сырғыту (телефон) =====

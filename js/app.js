@@ -23,6 +23,7 @@
   var routes = {};
   Shyn.route = function (name, fn) { routes[name] = fn; };
   Shyn.go = function (hash) { if (location.hash === hash) render(); else location.hash = hash; };
+  var lastHash = null;
   function render() {
     var h = (location.hash || "#/").slice(2).split("/");
     var name = h[0] || "home";
@@ -33,9 +34,11 @@
     var fn = routes[name] || routes.home;
     document.body.setAttribute("data-route", name);
     Shyn._route = name;
+    // Сол бетті қайта салғанда (батырма, сүзгі, жауап) айналдыру орны сақталады; жаңа бетке өткенде ғана жоғарыға
+    var y = global.scrollY, same = location.hash === lastHash; lastHash = location.hash;
     fn(h.slice(1));
     if (Shyn.Nav) Shyn.Nav.decorate(name);
-    if (!Shyn._keepScroll) global.scrollTo(0, 0);
+    if (Shyn._keepScroll || same) global.scrollTo(0, y); else global.scrollTo(0, 0);
     Shyn._keepScroll = false;
     var main = document.getElementById("view"); if (main) main.focus({ preventScroll: true });
   }
@@ -502,12 +505,14 @@
     });
     g.innerHTML = html;
     U.on(".cell", "click", function (e, el) { goto(+el.getAttribute("data-i")); }, g);
-    var cur = g.querySelector(".is-cur"); if (cur && cur.scrollIntoView && global.innerWidth < 900) cur.scrollIntoView({ block: "nearest", inline: "center" });
+    U.centerX(g.querySelector(".is-cur")); // тек көлденең, бет секірмейді
   }
   function goto(i) {
     if (Shyn.tts) Shyn.tts.stop();
     S.index = Math.max(0, Math.min(S.test.questions.length - 1, i));
     persist(); drawGrid(); drawQuestion();
+    // Келесі сұраққа өткенде: сұрақтың басы экраннан жоғары қалса ғана, сұрақтың басына жұмсақ апарамыз
+    var w = U.$("#qwrap"); if (w) { var top = w.getBoundingClientRect().top; if (top < 0) global.scrollTo({ top: global.scrollY + top - 70, behavior: "smooth" }); }
   }
   function drawQuestion() {
     var q = S.test.questions[S.index], w = U.$("#qwrap"), n = S.test.questions.length;

@@ -150,6 +150,20 @@
   U.$ = function (sel, root) { return (root || document).querySelector(sel); };
   U.$$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
   U.on = function (sel, ev, fn, root) { U.$$(sel, root).forEach(function (el) { el.addEventListener(ev, function (e) { fn.call(el, e, el); }); }); };
+  // Элементті тек көлденең жылжитын ата-контейнерінің ішінде ортаға әкеледі — бетті жоғары-төмен секіртпейді
+  U.centerX = function (el) {
+    if (!el) return;
+    var p = el.parentElement;
+    while (p && p !== document.body) {
+      var cs = getComputedStyle(p);
+      if (p.scrollWidth > p.clientWidth + 2 && /(auto|scroll)/.test(cs.overflowX)) {
+        var pr = p.getBoundingClientRect(), er = el.getBoundingClientRect();
+        p.scrollLeft += (er.left + er.width / 2) - (pr.left + pr.width / 2);
+        return;
+      }
+      p = p.parentElement;
+    }
+  };
   U.toast = function (text) {
     var t = document.getElementById("toast");
     t.textContent = text; t.classList.add("show");
