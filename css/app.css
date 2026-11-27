@@ -1771,3 +1771,6 @@ body.has-ibanner #view { padding-bottom: 96px; }
   .dtile { scroll-snap-align: start; }
 }
 .toolbar.ctools { flex-wrap: wrap; overflow: visible; }
+.hcards__head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hcards__head h2 { margin: 0; }
+.hcards .dtiles { margin: 12px 0; }

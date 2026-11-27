@@ -95,6 +95,25 @@
     U.$("#cNo").addEventListener("click", function () { judge("unknown"); });
     U.$("#cYes").addEventListener("click", function () { judge("know"); });
   });
+  Shyn.openDeck = function (sub, topic) { C.subject = sub; C.topic = topic || ""; saveUI(); buildDeck(); Shyn.go("#/cards"); };
+  // Басты бетке: карточка колодалары мен соңғы күнге арналған тесттер
+  var HOME_DECKS = [["english", "12 шақ: формулалар"], ["english", "12 шақ: белгі → шақ"], ["english", "Бұрыс етістіктер (V1–V2–V3)"], ["english", "Gerund / Infinitive"],
+    ["english", "Синонимдер: етістік, сын есім"], ["english", "Синонимдер сөздігі"], ["algo", "Кілттік терминдер"], ["db", "Кілттік терминдер"], ["fundamentals", "Кілттік формулалар"]];
+  Shyn.homeCardsHTML = function () {
+    var tiles = HOME_DECKS.map(function (d, i) {
+      var list = Shyn.cards.filter(function (c) { return c.subject === d[0] && c.topic === d[1]; }); if (!list.length) return "";
+      var k = list.filter(function (c) { return Store.cardStatus(c.id) === "know"; }).length, pc = Math.round(k / list.length * 100);
+      return '<button class="dtile" data-hdeck="' + i + '"><b>' + esc(d[1]) + '</b><small>' + Shyn.SUBJECT[d[0]].short + ' · ' + list.length + ' карточка · білемін ' + k + '</small><i style="width:' + pc + '%"></i></button>';
+    }).join("");
+    return '<section class="block hcards"><div class="hcards__head"><h2>Карточкалар және жылдам тесттер</h2><a class="btn btn--line" href="#/cards">Барлық карточкалар</a></div>' +
+      '<div class="dtiles">' + tiles + '</div>' +
+      '<div class="inline"><button class="btn btn--primary" data-htest="v96-english">12 шақ тесті · 36 сұрақ</button>' +
+      '<button class="btn btn--line" data-htest="v97-english">12 грамматика тақырыбы · 44 сұрақ</button></div></section>';
+  };
+  Shyn.homeCardsBind = function (root) {
+    U.on("[data-hdeck]", "click", function (e, el) { var d = HOME_DECKS[+el.getAttribute("data-hdeck")]; Shyn.openDeck(d[0], d[1]); }, root);
+    U.on("[data-htest]", "click", function (e, el) { Shyn.startSetTest(el.getAttribute("data-htest")); }, root);
+  };
   Shyn.startSetTest = function (key) {
     var set = Shyn.allSets().filter(function (x) { return x.key === key; })[0];
     if (!set) { U.toast("Тест табылмады"); return; }

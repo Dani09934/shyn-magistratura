@@ -256,6 +256,7 @@
         '<div class="hero__side"><div class="countdown">' + countdown + '</div>' +
         '<div class="streak"><div class="streak__strip">' + strip + '</div><div class="streak__t">' + (streak ? "Қатарынан " + streak + " күн оқудасыз" : "Бүгін бастап, күн сайын аздап оқыңыз") + '</div></div></div>' +
       '</section>' +
+      (Shyn.homeCardsHTML ? Shyn.homeCardsHTML() : "") +
       (Shyn.predictHTML ? Shyn.predictHTML("home") : "") +
       (Shyn.todayHTML ? Shyn.todayHTML() : (Shyn.planHTML ? Shyn.planHTML() : "")) +
       (sessions ? '<section class="block"><h2>Жалғастыру</h2><div class="resumes">' + sessions + '</div></section>' : "") +
@@ -270,6 +271,7 @@
       (Shyn.Game ? Shyn.Game.homeHTML() : "") +
       (Shyn.Game ? Shyn.Game.qotdHTML() : "");
 
+    if (Shyn.homeCardsBind) Shyn.homeCardsBind(view);
     if (Shyn.Game) Shyn.Game.bindHome(); if (Shyn.planBind) Shyn.planBind(view); if (Shyn.predictBind) Shyn.predictBind(view); if (Shyn.todayBind) Shyn.todayBind(view);
     var sd = U.$("#setDate"); if (sd) sd.addEventListener("click", function () { Shyn.go("#/settings"); });
     U.$("#examBtn").addEventListener("click", openExamModal);
